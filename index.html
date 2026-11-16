@@ -816,12 +816,28 @@
     }
   }
 
+  // Ortnamn för din position (BigDataCloud, gratis uppslagning direkt från webbläsaren, bara för aktuell position)
+  async function placeName(lat, lon){
+    try{
+      const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 4000);
+      const r = await fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=sv&latitude=" + lat + "&longitude=" + lon, {signal: ctrl.signal});
+      clearTimeout(t);
+      if(!r.ok) return null;
+      const j = await r.json();
+      return (j.city || j.locality || "").trim() || null;
+    }catch(e){ return null; }
+  }
   $("locBtn").addEventListener("click", () => {
     $("err").textContent = "";
     if(!navigator.geolocation){ $("err").textContent = "Webbläsaren kan inte dela din position. Sök på en ort i stället."; return; }
     $("locBtn").disabled = true;
     navigator.geolocation.getCurrentPosition(
-      p => { $("locBtn").disabled = false; getWeather(p.coords.latitude, p.coords.longitude, "Din position"); },
+      async p => {
+        const {latitude: lat, longitude: lon} = p.coords;
+        const name = await placeName(lat, lon);
+        $("locBtn").disabled = false;
+        getWeather(lat, lon, name || "Din position");
+      },
       () => { $("locBtn").disabled = false; $("err").textContent = "Positionen gick inte att hämta. Tillåt plats för sidan, eller sök på en ort i stället."; },
       {timeout: 15000, maximumAge: 10*60*1000}
     );
