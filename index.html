@@ -185,7 +185,22 @@
   .fb-row button{border:0;background:var(--surface);border-radius:16px;padding:18px 6px 16px;font-size:16px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:10px;transition:transform .15s var(--ease)}
   .fb-row button:active{transform:scale(.95)}
   .fb-row svg{width:26px;height:26px;display:block}
-  .calib{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;font-size:15px;color:var(--muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chips button{border:0;background:var(--surface);border-radius:999px;padding:10px 15px;font-size:15px;font-weight:500;transition:background-color .2s, color .2s, transform .15s var(--ease)}
+  .chips button:active{transform:scale(.95)}
+  .chips button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+  .fb-step2:not([hidden]){animation:rise .35s var(--ease)}
+  .insights p{margin:0 0 4px}
+  .insights p:last-child{margin-bottom:0}
+  .better{margin-top:10px;width:100%;display:flex;align-items:center;gap:12px;border:0;background:var(--surface);border-radius:18px;padding:13px 14px;text-align:left;font-size:15px;color:var(--muted);transition:transform .15s var(--ease)}
+  .better.enter{animation:rise .45s var(--ease) both}
+  .better:active{transform:scale(.98)}
+  .better svg{width:20px;height:20px;flex:none;color:var(--ink)}
+  .better b{display:block;color:var(--ink);font-weight:600;font-size:16px}
+  .better .go{margin-left:auto;flex:none;font-size:14px;font-weight:600;color:var(--ink);background:color-mix(in srgb, var(--ink) 7%, transparent);border-radius:999px;padding:5px 12px}
+  .hour{position:relative}
+  .hour.best::after{content:"";position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 1.5px var(--line)}
+  .calib{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-top:16px;font-size:15px;color:var(--muted)}
   .calib button{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:15px;flex:none}
   .history{display:flex;gap:4px;flex-wrap:wrap;margin-top:12px}
   .history:empty{display:none}
@@ -203,6 +218,9 @@
   .ic.play .pop{animation:draw .4s both, pop .4s var(--ease) both}
   .ic.play circle.pop:not(.draw){animation:pop .4s var(--ease) both}
   .ic.play .hop{animation:hop .6s var(--ease)}
+  .ic .hand{transform-origin:12px 12px;transform-box:view-box}
+  .ic.play .hand{animation:tick .7s var(--ease)}
+  @keyframes tick{from{rotate:-90deg}to{rotate:0deg}}
   @keyframes blink{50%{opacity:.2}}
   @keyframes blinkSoft{50%{opacity:.3}}
   @keyframes drift{0%,50%{translate:-1px -1px}25%,75%{translate:1px 1px}100%{translate:0 0}}
@@ -259,6 +277,7 @@
   </section>
 
   <div id="alertSlot"></div>
+  <div id="betterSlot"></div>
   <p class="tip" id="tip"></p>
 
   <div class="bottom">
@@ -371,12 +390,28 @@
   <div class="dlg">
     <div class="dlg-head"><h2 id="fbTitle">Hur kändes passet?</h2><button class="close" data-close aria-label="Stäng"><span data-ic="x"></span></button></div>
     <p class="hint">Svara när du kommit hem, så anpassas nästa förslag efter dig.</p>
+    <div id="fbStep1">
     <div class="fb-row">
       <button data-fb="cold"><span data-ic="ice" style="color:#6F92B0"></span>Frös</button>
       <button data-fb="ok"><span data-ic="check" style="color:#8A9866"></span>Lagom</button>
       <button data-fb="hot"><span data-ic="sun" style="color:#C07E4C"></span>För varmt</button>
     </div>
-    <div class="calib"><span id="calibText"></span><button id="reset" type="button">Nollställ</button></div>
+    </div>
+    <div id="fbStep2" class="fb-step2" hidden>
+      <p class="sub-head" id="fbQ" style="margin-top:4px">Var frös du?</p>
+      <p class="hint">Välj en eller flera.</p>
+      <div class="chips" id="fbParts" role="group" aria-label="Kroppsdelar">
+        <button data-p="all" aria-pressed="true">Överallt</button>
+        <button data-p="head" aria-pressed="false">Huvud</button>
+        <button data-p="top" aria-pressed="false">Överkropp</button>
+        <button data-p="hands" aria-pressed="false">Händer</button>
+        <button data-p="legs" aria-pressed="false">Ben</button>
+        <button data-p="feet" aria-pressed="false">Fötter</button>
+      </div>
+      <button class="btn" id="fbSave" type="button" style="margin-top:18px">Spara</button>
+      <button class="link" id="fbBack" type="button" style="display:block;margin:14px auto 0">Tillbaka</button>
+    </div>
+    <div class="calib"><div id="calibText" class="insights"></div><button id="reset" type="button">Nollställ</button></div>
     <div class="history" id="history" aria-label="Dina senaste pass"></div>
   </div>
 </dialog>
@@ -386,11 +421,14 @@
   const $ = id => document.getElementById(id);
   const state = {precip:"none", sky:"cloud", ground:"dry", pace:"easy"};
   const KEY = "lopklader.v1";
-  let profile = {offset:0, history:[]};
+  // offset och history är från första versionen; log är svar med väder och kroppsdelar
+  let profile = {offset:0, history:[], log:[]};
+  const PARTS = ["head","top","hands","legs","feet"];
+  const PART_LABEL = {head:"huvudet", top:"överkroppen", hands:"händerna", legs:"benen", feet:"fötterna"};
   let prefs = {base:0, hands:"normal", legs:"normal"};
 
   function load(){
-    try{ const s = localStorage.getItem(KEY); if(s){ const p = JSON.parse(s); if(p && typeof p.offset==="number") profile = {offset:p.offset, history:Array.isArray(p.history)?p.history:[]}; } }catch(e){}
+    try{ const s = localStorage.getItem(KEY); if(s){ const p = JSON.parse(s); if(p && typeof p.offset==="number") profile = {offset:p.offset, history:Array.isArray(p.history)?p.history:[], log:Array.isArray(p.log)?p.log:[]}; } }catch(e){}
   }
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(profile)); }catch(e){} }
   function loadPrefs(){
@@ -429,6 +467,7 @@
     pin: '<g class="hop"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle class="draw" pathLength="1" style="--dl:.3s" cx="12" cy="10" r="3"/></g>',
     user: '<circle class="draw pop" pathLength="1" cx="12" cy="7" r="4"/><path class="draw" pathLength="1" style="--dl:.2s" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>',
     x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><path class="hand" d="M12 6v6l4 2"/>',
     locate: '<path d="M2 12h3M19 12h3M12 2v3M12 19v3"/><circle cx="12" cy="12" r="7"/><circle class="pop" cx="12" cy="12" r="3"/>',
   };
   const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${G[k] || ""}</svg>`;
@@ -455,8 +494,52 @@
     if(state.precip==="rain") feels -= 2;
     if(state.precip==="drizzle") feels -= 1;
     const paceAdj = {easy:0, long:-1, hard:3}[state.pace];
-    const dress = feels + paceAdj + prefs.base + profile.offset; // lägre värde = varmare kläder
-    return {t, w, feels:Math.round(feels), dress:Math.round(dress)};
+    const base = feels + paceAdj + prefs.base; // lägre värde = varmare kläder
+    const off = learned(cond());
+    const part = {};
+    PARTS.forEach(p => part[p] = Math.round(base + off[p]));
+    return {t, w, feels:Math.round(feels), dress:part.top, part, off};
+  }
+
+  // ---------- Lär sig av svaren ----------
+  function cond(){ return {t:+$("temp").value, w:+$("wind").value, wet: state.precip !== "none"}; }
+  // Hur likt vädret är det väder ett svar gavs i (1 = samma)
+  function similarity(a, b){
+    let s = Math.exp(-Math.pow((a.t - b.t) / 7, 2)) * Math.exp(-Math.pow((a.w - b.w) / 5, 2));
+    if(a.wet !== b.wet) s *= 0.6;
+    return s;
+  }
+  // Justering per kroppsdel: varje svar räknas fullt i liknande väder och till en tredjedel i helt annat väder
+  function learned(c){
+    const off = {head:0, top:0, hands:0, legs:0, feet:0};
+    for(const e of profile.log){
+      if(e.f === "ok") continue;
+      const v = e.f === "cold" ? -2 : 2;
+      const wgt = 0.35 + 0.65 * similarity(c, e);
+      (e.parts.includes("all") ? PARTS : e.parts).forEach(p => off[p] += v * wgt);
+    }
+    PARTS.forEach(p => off[p] = clamp(off[p] + profile.offset, -8, 8));
+    return off;
+  }
+  function insights(){
+    const L = profile.log;
+    if(!L.length && profile.offset === 0) return ["Inga svar än. Förslagen utgår från en genomsnittslöpare."];
+    const val = e => e.f === "cold" ? -1 : e.f === "hot" ? 1 : 0;
+    const avg = arr => arr.reduce((a, e) => a + val(e), 0) / arr.length;
+    const out = [];
+    const sum = L.reduce((a, e) => a + val(e), 0) + Math.round(profile.offset / 2);
+    if(sum <= -2) out.push("Du fryser oftare än genomsnittet, så förslagen är varmare.");
+    else if(sum >= 2) out.push("Du blir oftare för varm, så förslagen är svalare.");
+    const cnt = {};
+    L.filter(e => e.f === "cold").forEach(e => e.parts.forEach(p => { if(p !== "all") cnt[p] = (cnt[p] || 0) + 1; }));
+    const most = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+    if(most && most[1] >= 2) out.push("Det är oftast " + PART_LABEL[most[0]] + " som fryser.");
+    const windy = L.filter(e => e.w >= 6), calm = L.filter(e => e.w < 6);
+    if(windy.length >= 2 && calm.length >= 2 && avg(windy) - avg(calm) <= -0.75) out.push("Du fryser mer när det blåser.");
+    const wet = L.filter(e => e.wet), dry = L.filter(e => !e.wet);
+    if(wet.length >= 2 && dry.length >= 2 && avg(wet) - avg(dry) <= -0.75) out.push("Du fryser mer när det regnar.");
+    if(!out.length) out.push(L.length === 1 ? "Ett svar hittills. Ju fler pass, desto bättre förslag." : L.length + " svar hittills. Förslagen anpassas efter dem.");
+    return out;
   }
   function outfit(d){
     const o = {};
@@ -521,7 +604,11 @@
     const degText = "Som " + deg(r.dress);
     if($("degree").textContent !== degText){ $("degree").textContent = degText; if(!firstOutfit) restart($("degree"), "swap"); }
 
-    const o = outfit(r.dress);
+    const o = outfit(r.part.top);
+    o.head = outfit(r.part.head).head;
+    o.hands = outfit(r.part.hands).hands;
+    o.legs = outfit(r.part.legs).legs;
+    o.feet = outfit(r.part.feet).feet;
     const rows = [["Överkropp", o.top], ["Ben", o.legs]];
     if(o.head) rows.unshift(["Huvud", o.head]);
     if(o.neck) rows.push(["Hals", o.neck]);
@@ -581,10 +668,7 @@
   $("degree").addEventListener("animationend", () => $("degree").classList.remove("swap"));
 
   function renderCalib(){
-    const off = profile.offset;
-    $("calibText").textContent = off === 0 ? "Inga svar än. Förslagen utgår från en genomsnittslöpare."
-      : off < 0 ? "Du fryser lätt, så förslagen är " + Math.abs(off) + " grader varmare."
-      : "Du blir lätt varm, så förslagen är " + off + " grader svalare.";
+    $("calibText").innerHTML = insights().map(t => `<p>${esc(t)}</p>`).join("");
     const col = {cold:"#6F92B0", ok:"#8A9866", hot:"#C07E4C"};
     $("history").innerHTML = profile.history.slice(-24).map(h => `<i title="${esc(h.d)}" style="background:${col[h.f]}"></i>`).join("");
   }
@@ -633,7 +717,7 @@
   });
   $("whereBtn").addEventListener("click", () => { play($("whereBtn")); openDlg("placeDlg"); setTimeout(() => $("q").focus(), 60); });
   $("ctxBtn").addEventListener("click", () => { if(!hours.length && !place) { openDlg("placeDlg"); return; } openDlg("timeDlg"); });
-  $("fbOpen").addEventListener("click", () => openDlg("fbDlg"));
+  $("fbOpen").addEventListener("click", () => { pendingFb = null; fbStep(1); openDlg("fbDlg"); });
   $("changePlace").addEventListener("click", async () => { await closeDlg($("timeDlg")); openDlg("placeDlg"); setTimeout(() => $("q").focus(), 60); });
   $("meBtn").addEventListener("click", () => { play($("meBtn")); openDlg("meDlg"); });
   ["meBtn","whereBtn"].forEach(id => $(id).addEventListener("pointerenter", e => { if(e.pointerType === "mouse") play($(id)); }));
@@ -647,18 +731,51 @@
   let toastTimer;
   function toast(msg){ $("toast").textContent = msg; restart($("toast"), "show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => $("toast").textContent = "", 5000); }
 
-  document.querySelectorAll("[data-fb]").forEach(b => b.addEventListener("click", () => {
-    const f = b.dataset.fb;
-    if(f==="cold") profile.offset = Math.max(-8, profile.offset - 2);
-    if(f==="hot") profile.offset = Math.min(8, profile.offset + 2);
-    profile.history.push({f, d: new Date().toLocaleDateString("sv-SE") + ", " + deg(+$("temp").value)});
+  let pendingFb = null;
+  function fbStep(n){
+    $("fbStep1").hidden = n !== 1; $("fbStep2").hidden = n !== 2;
+  }
+  function setParts(sel){
+    $("fbParts").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(sel.includes(b.dataset.p))));
+  }
+  const selectedParts = () => [...$("fbParts").querySelectorAll('[aria-pressed="true"]')].map(b => b.dataset.p);
+  $("fbParts").addEventListener("click", e => {
+    const b = e.target.closest("button"); if(!b) return;
+    let sel = selectedParts();
+    if(b.dataset.p === "all") sel = ["all"];
+    else {
+      sel = sel.filter(p => p !== "all");
+      sel = sel.includes(b.dataset.p) ? sel.filter(p => p !== b.dataset.p) : [...sel, b.dataset.p];
+      if(!sel.length) sel = ["all"];
+    }
+    setParts(sel);
+  });
+  const joinSv = arr => arr.length < 2 ? (arr[0] || "") : arr.slice(0, -1).join(", ") + " och " + arr[arr.length - 1];
+  function saveFeedback(f, parts, btn){
+    const c = cond();
+    profile.log.push({ts: Date.now(), f, parts, t: c.t, w: c.w, wet: c.wet, pace: state.pace});
+    if(profile.log.length > 120) profile.log = profile.log.slice(-120);
+    profile.history.push({f, d: new Date().toLocaleDateString("sv-SE") + ", " + deg(c.t)});
     if(profile.history.length > 50) profile.history = profile.history.slice(-50);
     save(); render();
-    play(b);
+    if(btn) play(btn);
     setTimeout(() => closeDlg($("fbDlg")), reduceMotion() ? 0 : 520);
-    toast(f==="ok" ? "Bra, förslagen fortsätter som nu." : f==="cold" ? "Nästa gång föreslås varmare kläder." : "Nästa gång föreslås lättare kläder.");
+    const where = parts.includes("all") ? "" : " på " + joinSv(parts.map(p => PART_LABEL[p]));
+    toast(f === "ok" ? "Bra, förslagen fortsätter som nu."
+      : (f === "cold" ? "Nästa gång föreslås varmare kläder" : "Nästa gång föreslås lättare kläder") + where + ".");
+  }
+  document.querySelectorAll("[data-fb]").forEach(b => b.addEventListener("click", () => {
+    const f = b.dataset.fb;
+    if(f === "ok"){ saveFeedback("ok", ["all"], b); return; }
+    pendingFb = f;
+    play(b);
+    $("fbQ").textContent = f === "cold" ? "Var frös du?" : "Var blev det för varmt?";
+    setParts(["all"]);
+    setTimeout(() => fbStep(2), reduceMotion() ? 0 : 320);
   }));
-  $("reset").addEventListener("click", () => { profile = {offset:0, history:[]}; save(); render(); });
+  $("fbSave").addEventListener("click", () => { if(pendingFb) saveFeedback(pendingFb, selectedParts(), null); pendingFb = null; });
+  $("fbBack").addEventListener("click", () => { pendingFb = null; fbStep(1); });
+  $("reset").addEventListener("click", () => { profile = {offset:0, history:[], log:[]}; save(); render(); });
 
   // ---------- Väder från Open-Meteo ----------
   let hours = [], quarter = [], selected = 0, place = null, fetchedAt = 0;
@@ -775,6 +892,46 @@
     $("alertSlot").innerHTML = `<details class="alert${allGood ? " good" : ""}${isNew ? " enter" : ""}"><summary>${icon(a.ico)}<strong>${esc(a.title)}</strong>${more}</summary><div class="alert-body"><p>${esc(a.text)}</p>${extras}</div></details>`;
   }
 
+  // ---------- Bästa tiden ----------
+  function hourScore(h){
+    let s = {none:0, drizzle:1.5, rain:3, snow:2}[h.precip];
+    s += Math.max(0, h.w - 4) * 0.5;
+    if(!h.day) s += 1.2;
+    if(h.ground === "ice") s += 1;
+    s += Math.abs(h.t - 10) * 0.04;
+    return s;
+  }
+  function bestTime(){
+    if(hours.length < 2) return null;
+    const night = h => { const H = +h.label.slice(0, 2); return H >= 23 || H < 6; };
+    // Bara de närmaste sex timmarna, och inte mitt i natten
+    const cand = hours.map((h, i) => ({h, i, s: hourScore(h)})).filter(c => c.i === 0 || (c.i <= 6 && !night(c.h)));
+    const now = cand[0];
+    const best = cand.reduce((a, c) => c.s < a.s - 0.01 ? c : a, now);
+    if(best.i === 0 || now.s - best.s < 1) return null;
+    const why = [];
+    if(now.h.precip !== "none" && best.h.precip === "none") why.push("uppehåll");
+    else if(now.h.precip === "rain" && best.h.precip === "drizzle") why.push("bara dugg");
+    if(now.h.w - best.h.w >= 2) why.push("svagare vind");
+    if(!now.h.day && best.h.day) why.push("fortfarande ljust");
+    if(now.h.ground === "ice" && best.h.ground !== "ice") why.push("mindre halt");
+    if(best.h.t - now.h.t >= 3) why.push("varmare");
+    if(!why.length) return null;
+    return {i: best.i, label: best.h.label, why};
+  }
+  let lastBetter = null;
+  function renderBetter(){
+    const b = selected === 0 ? bestTime() : null;
+    document.querySelectorAll(".hour.best").forEach(el => el.classList.remove("best"));
+    if(!b){ $("betterSlot").innerHTML = ""; lastBetter = null; return; }
+    const chip = $("hours").querySelector(`[data-i="${b.i}"]`); if(chip) chip.classList.add("best");
+    const key = b.label + b.why.join();
+    const isNew = key !== lastBetter; lastBetter = key;
+    $("betterSlot").innerHTML = `<button class="better${isNew ? " enter" : ""}" type="button">${icon("clock")}<span><b>Bättre kl ${esc(b.label)}</b>${esc(joinSv(b.why).replace(/^./, c => c.toUpperCase()))}</span><span class="go">Visa</span></button>`;
+    $("betterSlot").firstChild.onclick = () => applyHour(b.i);
+    if(isNew) setTimeout(() => play($("betterSlot")), 300);
+  }
+
   function renderHours(){
     $("hours").innerHTML = hours.map((h,i) =>
       `<button class="hour" data-i="${i}" aria-pressed="${i===selected}" aria-label="${h.label}, ${deg(h.t)}"><span class="ht">${h.label}</span>${icon(hourGlyph(h))}<span class="hv">${deg(h.t)}</span></button>`
@@ -787,7 +944,7 @@
     setSeg("precip", h.precip);
     setSeg("sky", !h.day ? "dark" : h.cloud < 40 ? "sun" : "cloud");
     setSeg("ground", h.ground);
-    renderHours(); render(); renderAlerts();
+    renderHours(); render(); renderAlerts(); renderBetter();
     play($("hours").querySelector('[aria-pressed="true"]'));
   }
   $("hours").addEventListener("click", e => { const b = e.target.closest(".hour"); if(b) applyHour(+b.dataset.i); });
@@ -862,7 +1019,7 @@
     }catch(err){ $("err").textContent = "Sökningen gick inte att göra. Kontrollera att du är uppkopplad."; }
   });
 
-  setInterval(() => { if(hours.length) renderAlerts(); }, 5 * 60 * 1000);
+  setInterval(() => { if(hours.length){ renderAlerts(); renderBetter(); } }, 5 * 60 * 1000);
   document.addEventListener("visibilitychange", () => {
     if(document.visibilityState === "visible" && place && Date.now() - fetchedAt > 20*60*1000) getWeather(place.lat, place.lon, place.name);
   });

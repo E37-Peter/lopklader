@@ -10,6 +10,8 @@ Klädförslag för löpning utifrån vädret där du är. Appen lär sig hur du 
 - Räknar fram en upplevd temperatur med vindavkylning, sol, nederbörd och typ av pass, och föreslår kläder för huvud, överkropp, ben, händer och fötter.
 - Varnar när vädret slår om de närmaste två timmarna: regn, kyla, vind, mörker och risk för halka.
 - Ortnamnet för din position slås upp med [BigDataCloud](https://www.bigdatacloud.com/free-api/free-reverse-geocode-to-city-api), en gratis tjänst som anropas direkt från webbläsaren.
+- Föreslår en bättre tid inom de närmaste sex timmarna när vädret blir klart bättre, till exempel uppehåll eller svagare vind.
+- Efter passet kan du säga var du frös eller blev för varm. Svaren sparas med vädret, så de väger mest när vädret liknar det du svarade i.
 - Inställningar under "Om dig" (fryser lätt, kalla händer, shorts eller tights) och svaren efter passen justerar förslagen. Allt sparas bara i webbläsaren.
 
 ## Filer
