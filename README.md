@@ -17,3 +17,7 @@ Klädförslag för löpning utifrån vädret där du är. Appen lär sig hur du 
 - `manifest.webmanifest`, `sw.js`, ikoner - gör att den kan läggas på hemskärmen som en app
 
 Lägg till på hemskärmen: öppna sidan i mobilen, välj Dela och sedan Lägg till på hemskärmen.
+
+## Ikoner
+
+Ikonerna kommer från [Lucide](https://lucide.dev) (ISC). Animationerna bygger på [lucide-animated](https://lucide-animated.com) (MIT) och är omsatta till CSS. Se [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

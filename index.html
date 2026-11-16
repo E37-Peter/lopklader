@@ -184,12 +184,33 @@
   .fb-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .fb-row button{border:0;background:var(--surface);border-radius:16px;padding:18px 6px 16px;font-size:16px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:10px;transition:transform .15s var(--ease)}
   .fb-row button:active{transform:scale(.95)}
-  .fb-row svg{width:24px;height:24px;display:block}
+  .fb-row svg{width:26px;height:26px;display:block}
   .calib{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;font-size:15px;color:var(--muted)}
   .calib button{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:15px;flex:none}
   .history{display:flex;gap:4px;flex-wrap:wrap;margin-top:12px}
   .history:empty{display:none}
   .history i{width:14px;height:6px;border-radius:9px;display:block}
+
+  /* Ikonanimationer (efter lucide-animated, MIT) */
+  .ic g, .ic path, .ic circle{transform-box:fill-box;transform-origin:center}
+  .ic.play .ray{animation:fadeIn .3s both;animation-delay:calc(var(--i) * .1s)}
+  .ic.play .drop{animation:blink 1s ease-in-out 2;animation-delay:calc(var(--i) * .2s)}
+  .ic.play .flake{animation:blinkSoft 1.5s ease-in-out 2;animation-delay:calc(var(--i) * .3s)}
+  .ic.play .drift{animation:drift 1s ease-in-out}
+  .ic.play .wiggle{animation:wiggle .4s}
+  .ic.play .wiggle-lg{animation:wiggleLg .6s ease-in-out}
+  .ic.play .draw{stroke-dasharray:1 1;animation:draw .5s ease-in-out both;animation-delay:var(--dl, 0s)}
+  .ic.play .pop{animation:draw .4s both, pop .4s var(--ease) both}
+  .ic.play circle.pop:not(.draw){animation:pop .4s var(--ease) both}
+  .ic.play .hop{animation:hop .6s var(--ease)}
+  @keyframes blink{50%{opacity:.2}}
+  @keyframes blinkSoft{50%{opacity:.3}}
+  @keyframes drift{0%,50%{translate:-1px -1px}25%,75%{translate:1px 1px}100%{translate:0 0}}
+  @keyframes wiggle{20%,60%{rotate:-5deg}40%,80%{rotate:5deg}}
+  @keyframes wiggleLg{20%{rotate:-10deg}40%{rotate:10deg}60%{rotate:-5deg}80%{rotate:5deg}}
+  @keyframes draw{from{stroke-dashoffset:1;opacity:0}to{stroke-dashoffset:0;opacity:1}}
+  @keyframes pop{from{scale:.5}to{scale:1}}
+  @keyframes hop{40%{translate:0 -5px}65%{translate:0 -3px}100%{translate:0 0}}
 
   @media (prefers-reduced-motion: reduce){ *, *::backdrop{transition:none !important;animation:none !important} }
 </style>
@@ -213,11 +234,9 @@
       Löpkläder
     </div>
     <div class="top-right">
-    <button class="icon-btn" id="meBtn" aria-label="Om dig">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+    <button class="icon-btn" id="meBtn" aria-label="Om dig"><span data-ic="user"></span>
     </button>
-    <button class="icon-btn" id="whereBtn" aria-label="Byt plats">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+    <button class="icon-btn" id="whereBtn" aria-label="Byt plats"><span data-ic="pin"></span>
     </button>
     </div>
   </header>
@@ -253,13 +272,12 @@
 <dialog id="placeDlg" aria-labelledby="placeTitle">
   <div class="grabber"></div>
   <div class="dlg">
-    <div class="dlg-head"><h2 id="placeTitle">Var springer du?</h2><button class="close" data-close aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="dlg-head"><h2 id="placeTitle">Var springer du?</h2><button class="close" data-close aria-label="Stäng"><span data-ic="x"></span></button></div>
     <form id="searchForm" role="search">
       <label class="visually-hidden" for="q">Sök ort</label>
       <input class="search" id="q" type="search" placeholder="Sök ort, till exempel Umeå" autocomplete="off" enterkeyhint="search">
     </form>
-    <button class="btn" id="locBtn" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    <button class="btn" id="locBtn" type="button"><span data-ic="locate"></span>
       Använd min position
     </button>
     <div class="results" id="results"></div>
@@ -271,7 +289,7 @@
 <dialog id="timeDlg" aria-labelledby="timeTitle">
   <div class="grabber"></div>
   <div class="dlg">
-    <div class="dlg-head"><h2 id="timeTitle">När springer du?</h2><button class="close" data-close aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="dlg-head"><h2 id="timeTitle">När springer du?</h2><button class="close" data-close aria-label="Stäng"><span data-ic="x"></span></button></div>
     <p class="hint"><span id="updated">Välj plats så hämtas prognosen.</span> <button type="button" class="link" id="changePlace">Byt plats</button></p>
     <div class="hours" id="hours"></div>
     <p class="sub-head">Stämmer inte vädret?</p>
@@ -317,7 +335,7 @@
 <dialog id="meDlg" aria-labelledby="meTitle">
   <div class="grabber"></div>
   <div class="dlg">
-    <div class="dlg-head"><h2 id="meTitle">Om dig</h2><button class="close" data-close aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="dlg-head"><h2 id="meTitle">Om dig</h2><button class="close" data-close aria-label="Stäng"><span data-ic="x"></span></button></div>
     <p class="hint">Ger bättre förslag redan från första passet. Dina svar efter passen finjusterar sedan.</p>
     <div class="pref">
       <h3>Hur är du i kyla?</h3>
@@ -351,12 +369,12 @@
 <dialog id="fbDlg" aria-labelledby="fbTitle">
   <div class="grabber"></div>
   <div class="dlg">
-    <div class="dlg-head"><h2 id="fbTitle">Hur kändes passet?</h2><button class="close" data-close aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="dlg-head"><h2 id="fbTitle">Hur kändes passet?</h2><button class="close" data-close aria-label="Stäng"><span data-ic="x"></span></button></div>
     <p class="hint">Svara när du kommit hem, så anpassas nästa förslag efter dig.</p>
     <div class="fb-row">
-      <button data-fb="cold"><svg viewBox="0 0 24 24" fill="none" stroke="#6F92B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9.5 4.5L12 7l2.5-2.5M9.5 19.5L12 17l2.5 2.5"/></svg>Frös</button>
-      <button data-fb="ok"><svg viewBox="0 0 24 24" fill="none" stroke="#8A9866" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Lagom</button>
-      <button data-fb="hot"><svg viewBox="0 0 24 24" fill="none" stroke="#C07E4C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>För varmt</button>
+      <button data-fb="cold"><span data-ic="ice" style="color:#6F92B0"></span>Frös</button>
+      <button data-fb="ok"><span data-ic="check" style="color:#8A9866"></span>Lagom</button>
+      <button data-fb="hot"><span data-ic="sun" style="color:#C07E4C"></span>För varmt</button>
     </div>
     <div class="calib"><span id="calibText"></span><button id="reset" type="button">Nollställ</button></div>
     <div class="history" id="history" aria-label="Dina senaste pass"></div>
@@ -391,20 +409,36 @@
   const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 
   // ---------- Ikoner ----------
-  const CU = '<path d="M7 14h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 7 3.5 3.5 0 0 0 7 14z"/>';
+  // Ikoner: Lucide (ISC, lucide.dev). Animationer efter lucide-animated (MIT, lucide-animated.com), omsatta till CSS.
+  const rays = (ds, start = 0) => ds.map((d, i) => `<path class="ray" style="--i:${i + start}" d="${d}"/>`).join("");
+  const parts = (cls, ds) => ds.map((d, i) => `<path class="${cls}" style="--i:${i}" d="${d}"/>`).join("");
+  const CLOUD_TOP = '<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>';
+  const SNOWFLAKE = ["m10 20-1.25-2.5L6 18","M10 4 8.75 6.5 6 6","m14 20 1.25-2.5L18 18","m14 4 1.25 2.5L18 6","m17 21-3-6h-4","m17 3-3 6 1.5 3","M2 12h6.5L10 9","m20 10-1.5 2 1.5 2","M22 12h-6.5L14 15","m4 10 1.5 2L4 14","m7 21 3-6-1.5-3","m7 3 3 6h4"].map(d => `<path d="${d}"/>`).join("");
   const G = {
-    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
-    partly:'<path d="M9 3.5v1.5M3.5 9H5M5.1 5.1l1 1M13 5.1l-1 1"/><path d="M6.3 11.2A3.5 3.5 0 0 1 12.4 8"/><path d="M9 20h8.5a3.5 3.5 0 0 0 .4-7A5 5 0 0 0 8.6 14 3 3 0 0 0 9 20z"/>',
-    moon:'<path d="M19.5 14.5A7.5 7.5 0 1 1 9.5 4.5a6 6 0 0 0 10 10z"/>',
-    cloud:'<path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 11 3.5 3.5 0 0 0 7 18z"/>',
-    rain:CU + '<path d="M8.5 17.5l-1 2.5M12.5 17.5l-1 2.5M16.5 17.5l-1 2.5"/>',
-    drizzle:CU + '<path d="M9 18v1M13 18v1M17 18v1"/>',
-    snow:CU + '<path d="M8 18.5h.01M12 20.5h.01M16 18.5h.01M10 21.5h.01M14 21.5h.01" stroke-width="2.6"/>',
-    wind:'<path d="M3 8.5h10.5a2.5 2.5 0 1 0-2.5-2.5M3 12.5h15a2.5 2.5 0 1 1-2.5 2.5M3 16.5h7"/>',
-    temp:'<path d="M10 13.5V5a2 2 0 1 1 4 0v8.5a4 4 0 1 1-4 0z"/><path d="M12 9v6"/>',
-    ice:'<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9.5 4.5L12 7l2.5-2.5M9.5 19.5L12 17l2.5 2.5"/>',
+    sun: '<circle cx="12" cy="12" r="4"/>' + rays(["M12 2v2","m19.07 4.93-1.41 1.41","M20 12h2","m17.66 17.66 1.41 1.41","M12 20v2","m6.34 17.66-1.41 1.41","M2 12h2","m4.93 4.93 1.41 1.41"]),
+    partly: '<g class="drift"><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></g>' + rays(["M12 2v2","m19.07 4.93-1.41 1.41","M20 12h2","m4.93 4.93 1.41 1.41","M15.947 12.65a4 4 0 0 0-5.925-4.128"], 1),
+    moon: '<g class="wiggle-lg"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></g>',
+    cloud: '<g class="drift"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></g>',
+    rain: CLOUD_TOP + parts("drop", ["M8 14v6","M12 16v6","M16 14v6"]),
+    drizzle: CLOUD_TOP + parts("drop", ["M8 14v1","M12 16v1","M16 14v1","M8 19v1","M12 21v1","M16 19v1"]),
+    snow: CLOUD_TOP + parts("flake", ["M8 15h.01","M12 17h.01","M16 15h.01","M8 19h.01","M12 21h.01","M16 19h.01"]),
+    wind: '<path class="draw" pathLength="1" style="--dl:.2s" d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path class="draw" pathLength="1" d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path class="draw" pathLength="1" style="--dl:.4s" d="M9.8 4.4A2 2 0 1 1 11 8H2"/>',
+    temp: '<g class="wiggle"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></g>',
+    ice: '<g class="wiggle">' + SNOWFLAKE + '</g>',
+    check: '<path class="draw pop" pathLength="1" d="M20 6 9 17l-5-5"/>',
+    pin: '<g class="hop"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle class="draw" pathLength="1" style="--dl:.3s" cx="12" cy="10" r="3"/></g>',
+    user: '<circle class="draw pop" pathLength="1" cx="12" cy="7" r="4"/><path class="draw" pathLength="1" style="--dl:.2s" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>',
+    x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    locate: '<path d="M2 12h3M19 12h3M12 2v3M12 19v3"/><circle cx="12" cy="12" r="7"/><circle class="pop" cx="12" cy="12" r="3"/>',
   };
-  const icon = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${G[k]||""}</svg>`;
+  const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${G[k] || ""}</svg>`;
+  function play(el){
+    if(!el) return;
+    const svg = el.matches && el.matches("svg.ic") ? el : el.querySelector && el.querySelector("svg.ic");
+    if(!svg) return;
+    svg.classList.remove("play"); void svg.getBoundingClientRect(); svg.classList.add("play");
+  }
+  document.querySelectorAll("[data-ic]").forEach(e => { e.innerHTML = icon(e.dataset.ic); e.style.display = "contents"; });
 
   // ---------- Klädlogik ----------
   function windChill(t, ms){
@@ -510,11 +544,12 @@
       $("ctxTitle").textContent = "Eget väder";
       $("ctxSub").textContent = parts.join(", ");
     }
-    $("ctxIcon").innerHTML = icon(state.precip !== "none" ? state.precip : state.sky === "dark" ? "moon" : state.sky);
+    const kind = state.precip !== "none" ? state.precip : state.sky === "dark" ? "moon" : state.sky;
+    if(kind !== ctxKind){ ctxKind = kind; $("ctxIcon").innerHTML = icon(kind); play($("ctxIcon")); }
     renderCalib();
   }
 
-  let firstOutfit = true;
+  let firstOutfit = true, ctxKind = null;
   function restart(el, cls){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
   function renderOutfit(rows){
     const box = $("items");
@@ -596,11 +631,12 @@
   document.querySelectorAll("dialog").forEach(d => {
     d.addEventListener("click", e => { if(e.target === d || e.target.closest("[data-close]")) closeDlg(d); });
   });
-  $("whereBtn").addEventListener("click", () => { openDlg("placeDlg"); setTimeout(() => $("q").focus(), 60); });
+  $("whereBtn").addEventListener("click", () => { play($("whereBtn")); openDlg("placeDlg"); setTimeout(() => $("q").focus(), 60); });
   $("ctxBtn").addEventListener("click", () => { if(!hours.length && !place) { openDlg("placeDlg"); return; } openDlg("timeDlg"); });
   $("fbOpen").addEventListener("click", () => openDlg("fbDlg"));
   $("changePlace").addEventListener("click", async () => { await closeDlg($("timeDlg")); openDlg("placeDlg"); setTimeout(() => $("q").focus(), 60); });
-  $("meBtn").addEventListener("click", () => openDlg("meDlg"));
+  $("meBtn").addEventListener("click", () => { play($("meBtn")); openDlg("meDlg"); });
+  ["meBtn","whereBtn"].forEach(id => $(id).addEventListener("pointerenter", e => { if(e.pointerType === "mouse") play($(id)); }));
   document.querySelectorAll("[data-pref]").forEach(g => g.addEventListener("click", e => {
     const b = e.target.closest("button"); if(!b) return;
     const k = g.dataset.pref;
@@ -618,7 +654,8 @@
     profile.history.push({f, d: new Date().toLocaleDateString("sv-SE") + ", " + deg(+$("temp").value)});
     if(profile.history.length > 50) profile.history = profile.history.slice(-50);
     save(); render();
-    closeDlg($("fbDlg"));
+    play(b);
+    setTimeout(() => closeDlg($("fbDlg")), reduceMotion() ? 0 : 520);
     toast(f==="ok" ? "Bra, förslagen fortsätter som nu." : f==="cold" ? "Nästa gång föreslås varmare kläder." : "Nästa gång föreslås lättare kläder.");
   }));
   $("reset").addEventListener("click", () => { profile = {offset:0, history:[]}; save(); render(); });
@@ -734,6 +771,7 @@
     const more = rest.length ? `<span class="more">+${rest.length} till</span>` : "";
     const extras = rest.map(x => `<div class="extra">${icon(x.ico)}<div><strong>${esc(x.title)}</strong><p>${esc(x.text)}</p></div></div>`).join("");
     const isNew = lastAlert !== a.title; lastAlert = a.title;
+    setTimeout(() => { if(isNew) play($("alertSlot").querySelector("summary")); }, 250);
     $("alertSlot").innerHTML = `<details class="alert${allGood ? " good" : ""}${isNew ? " enter" : ""}"><summary>${icon(a.ico)}<strong>${esc(a.title)}</strong>${more}</summary><div class="alert-body"><p>${esc(a.text)}</p>${extras}</div></details>`;
   }
 
@@ -750,6 +788,7 @@
     setSeg("sky", !h.day ? "dark" : h.cloud < 40 ? "sun" : "cloud");
     setSeg("ground", h.ground);
     renderHours(); render(); renderAlerts();
+    play($("hours").querySelector('[aria-pressed="true"]'));
   }
   $("hours").addEventListener("click", e => { const b = e.target.closest(".hour"); if(b) applyHour(+b.dataset.i); });
 
