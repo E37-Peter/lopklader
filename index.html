@@ -116,7 +116,8 @@
 
   /* Blad */
   dialog{border:0;padding:0;background:var(--bg);color:var(--ink);width:100%;max-width:520px;max-height:90dvh;border-radius:26px 26px 0 0;
-    margin:auto auto 0;overflow:auto;padding-bottom:env(safe-area-inset-bottom);overscroll-behavior:contain}
+    margin:auto auto 0;overflow:auto;padding-bottom:env(safe-area-inset-bottom);overscroll-behavior:contain;scrollbar-width:none}
+  dialog::-webkit-scrollbar{display:none}
   dialog::backdrop{background:rgba(12,13,14,.45)}
   dialog[open]{animation:sheetIn .38s var(--ease)}
   dialog[open]::backdrop{animation:fadeIn .3s ease}
@@ -165,10 +166,10 @@
   .hour .hv{font-size:17px;font-weight:600}
   .hour[aria-pressed=true]{background:var(--ink);color:var(--bg)}
   .hour[aria-pressed=true] .ht{color:color-mix(in srgb, var(--bg) 68%, transparent)}
-  .field{margin-top:18px}
+  .field{margin-top:14px}
   .field-label{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;color:var(--muted);margin-bottom:8px}
   .field-label output{color:var(--ink);font-size:17px;font-weight:600}
-  .sub-head{margin:26px 0 2px;font-size:17px;font-weight:600}
+  .sub-head{margin:22px 0 2px;font-size:17px;font-weight:600}
   input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent}
   input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:var(--line)}
   input[type=range]::-moz-range-track{height:4px;border-radius:4px;background:var(--line)}
@@ -981,7 +982,11 @@
       clearTimeout(t);
       if(!r.ok) return null;
       const j = await r.json();
-      return (j.city || j.locality || "").trim() || null;
+      // "city" kan vara en kommun ("Botkyrka kommun"); då är orten (locality, t.ex. "Tumba") mer träffande
+      const strip = n => (n || "").replace(/\s+(kommun|municipality)$/i, "").trim();
+      const city = (j.city || "").trim(), loc = (j.locality || "").trim();
+      const isMunicipality = /\s(kommun|municipality)$/i.test(city);
+      return (isMunicipality && loc && !/\s(kommun|municipality)$/i.test(loc) ? loc : strip(city) || strip(loc)) || null;
     }catch(e){ return null; }
   }
   $("locBtn").addEventListener("click", () => {
