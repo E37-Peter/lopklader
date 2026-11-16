@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vad ska jag springa i?</title>
+<meta name="description" content="Klädförslag för löpning utifrån vädret där du är, som lär sig hur du fungerar.">
+<meta name="theme-color" content="#ECECE8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141516" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Löpkläder">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Reflex: asfalt, sten och reflexgult */
+    --bg:#ECECE8; --surface:#FAFAF7; --ink:#1C1D1F; --muted:#62656A; --faint:#93969B; --line:#D8D8D2;
+    --signal:#F2E205; --on-signal:#1C1D1F; --silver:#C4C7CA; --logo-bg:#1C1D1F;
+    --t:#DDE2D6; /* klädrutans ton, sätts efter temperaturen */
+    --panel:var(--t);
+    --font:"Familjen Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --pad:20px;
+    --ease:cubic-bezier(.22,.8,.24,1);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#141516; --surface:#1E1F21; --ink:#EDEDE8; --muted:#A1A4A9; --faint:#6E7176; --line:#2D2F32; --silver:#55585C; --logo-bg:#2E3033;
+      --panel:color-mix(in srgb, var(--t) 18%, var(--surface)); color-scheme:dark; }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;font-family:var(--font);color:var(--ink);font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased;
+    background:var(--bg);font-feature-settings:"tnum" 1;-webkit-tap-highlight-color:transparent}
+  button,input{font:inherit;color:inherit}
+  button{cursor:pointer;touch-action:manipulation}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:8px}
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  .app{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 16px) var(--pad) calc(env(safe-area-inset-bottom) + 28px);
+    min-height:100dvh;display:flex;flex-direction:column}
+
+  /* Topp och logga */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand{font-weight:700;font-size:19px;letter-spacing:-.025em;white-space:nowrap;display:flex;align-items:center;gap:10px}
+  .logo{width:30px;height:30px;flex:none;display:block}
+  .logo .sheen{transform:translateX(-14px)}
+  .intro .logo .sheen{animation:sheen 1.1s .35s var(--ease) both}
+  @keyframes sheen{from{transform:translateX(-14px)}to{transform:translateX(30px)}}
+  .top-right{display:flex;gap:8px;align-items:center}
+  .icon-btn{flex:none;width:38px;height:38px;border-radius:999px;border:0;background:color-mix(in srgb, var(--ink) 7%, transparent);display:grid;place-items:center;padding:0;transition:transform .15s var(--ease), background-color .2s}
+  .icon-btn svg{width:18px;height:18px}
+  .icon-btn:active{transform:scale(.92)}
+
+  /* Väderraden */
+  .context{margin-top:24px;width:100%;display:flex;align-items:flex-start;gap:12px;border:0;background:none;padding:0;text-align:left;color:var(--muted);font-size:16px}
+  .context #ctxIcon{flex:none;margin-top:-1px}
+  .context svg{width:24px;height:24px;display:block;color:var(--ink)}
+  .ctx-text{display:grid;min-width:0;line-height:1.3}
+  .ctx-text b{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+  .context .edit{margin-left:auto;flex:none;font-size:14px;font-weight:600;color:var(--ink);background:color-mix(in srgb, var(--ink) 7%, transparent);border-radius:999px;padding:5px 12px;transition:transform .15s var(--ease)}
+  .context:active .edit{transform:scale(.94)}
+
+  /* Segmentväljare med glidande markering */
+  .seg{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:color-mix(in srgb, var(--ink) 7%, transparent);border-radius:13px;padding:3px}
+  .seg .thumb{position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n, 3));border-radius:10px;background:var(--surface);
+    box-shadow:0 1px 2px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.05);transform:translateX(calc(var(--i, 0) * 100%));transition:transform .32s var(--ease)}
+  .seg.no-sel .thumb{opacity:0}
+  .seg button{position:relative;z-index:1;border:0;background:transparent;border-radius:10px;padding:9px 4px;font-size:15px;font-weight:500;color:var(--muted);transition:color .2s}
+  .seg button[aria-pressed=true]{color:var(--ink)}
+  .pace{margin-top:16px}
+
+  /* Kläderna, huvudsaken */
+  .panel{margin-top:16px;border-radius:28px;padding:20px 22px 8px;background:var(--panel);transition:background-color .9s ease}
+  .for{margin:0 0 4px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:15px;color:color-mix(in srgb, var(--ink) 66%, transparent)}
+  .for b{font-size:14px;font-weight:600;color:var(--bg);background:var(--ink);border-radius:999px;padding:4px 11px;display:inline-block}
+  .outfit{margin:0}
+  .outfit > div{padding:13px 0;border-top:1px solid color-mix(in srgb, var(--ink) 11%, transparent)}
+  .outfit > div:first-child{border-top:0}
+  .outfit dt{font-size:14px;color:color-mix(in srgb, var(--ink) 58%, transparent);margin-bottom:1px}
+  .outfit dd{margin:0;font-size:22px;font-weight:600;line-height:1.22;letter-spacing:-.015em}
+  .outfit .skip dd{font-size:16px;font-weight:400;letter-spacing:0;color:color-mix(in srgb, var(--ink) 60%, transparent)}
+  .enter{animation:rise .5s var(--ease) both;animation-delay:var(--d, 0ms)}
+  .swap dd, b.swap{animation:swap .45s var(--ease)}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes swap{0%{opacity:.15;transform:translateY(5px)}100%{opacity:1;transform:none}}
+
+  /* Varning (vägskyltsgul) och tips */
+  .alert{margin-top:12px;background:var(--signal);color:var(--on-signal);border-radius:18px}
+  .alert.good{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+  .alert.enter{animation:rise .45s var(--ease) both}
+  .alert summary{list-style:none;display:grid;grid-template-columns:20px 1fr auto;gap:10px;align-items:center;padding:13px 14px;cursor:pointer}
+  .alert summary::-webkit-details-marker{display:none}
+  .alert svg{width:20px;height:20px}
+  .alert summary strong{font-weight:600;font-size:16px}
+  .alert .more{font-size:13px;font-weight:600;white-space:nowrap;border-radius:999px;padding:3px 9px;background:color-mix(in srgb, currentColor 12%, transparent)}
+  .alert[open] .more{opacity:0}
+  .alert-body{padding:0 14px 13px 44px;display:grid;gap:12px}
+  .alert[open] .alert-body{animation:rise .35s var(--ease)}
+  .alert-body p{margin:0;font-size:15px;opacity:.78}
+  .alert-body .extra{display:grid;grid-template-columns:20px 1fr;gap:10px;margin-left:-30px;padding-top:12px;border-top:1px solid color-mix(in srgb, currentColor 16%, transparent)}
+  .alert-body .extra strong{display:block;font-weight:600;font-size:15px}
+  .tip{margin:16px 2px 0;font-size:15px;color:var(--muted)}
+
+  .bottom{margin-top:auto;padding-top:28px;display:grid;gap:10px}
+  .fb-open{width:100%;border:0;background:color-mix(in srgb, var(--ink) 7%, transparent);border-radius:16px;padding:15px;font-size:16px;font-weight:600;transition:transform .15s var(--ease)}
+  .fb-open:active{transform:scale(.98)}
+  .toast{margin:0;text-align:center;font-size:15px;font-weight:500;min-height:1.4em}
+  .toast.show{animation:rise .4s var(--ease)}
+  footer{color:var(--faint);font-size:13px;text-align:center}
+  footer a{color:inherit}
+
+  /* Blad */
+  dialog{border:0;padding:0;background:var(--bg);color:var(--ink);width:100%;max-width:520px;max-height:90dvh;border-radius:26px 26px 0 0;
+    margin:auto auto 0;overflow:auto;padding-bottom:env(safe-area-inset-bottom);overscroll-behavior:contain}
+  dialog::backdrop{background:rgba(12,13,14,.45)}
+  dialog[open]{animation:sheetIn .38s var(--ease)}
+  dialog[open]::backdrop{animation:fadeIn .3s ease}
+  dialog.closing{animation:sheetOut .22s ease-in forwards}
+  dialog.closing::backdrop{animation:fadeOut .22s ease-in forwards}
+  @keyframes sheetIn{from{transform:translateY(100%)}to{transform:none}}
+  @keyframes sheetOut{to{transform:translateY(100%)}}
+  @keyframes fadeIn{from{opacity:0}}
+  @keyframes fadeOut{to{opacity:0}}
+  @media (min-width:600px){
+    dialog{margin:auto;border-radius:26px}
+    @keyframes sheetIn{from{transform:translateY(16px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+    @keyframes sheetOut{to{transform:translateY(10px) scale(.98);opacity:0}}
+  }
+  .grabber{width:38px;height:5px;border-radius:9px;background:color-mix(in srgb, var(--ink) 18%, transparent);margin:8px auto 0}
+  @media (min-width:600px){ .grabber{display:none} }
+  .dlg{padding:6px var(--pad) 26px}
+  .dlg-head{display:flex;align-items:center;justify-content:space-between;padding:8px 0 10px}
+  .dlg-head h2{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em}
+  .close{border:0;background:color-mix(in srgb, var(--ink) 8%, transparent);border-radius:999px;width:34px;height:34px;display:grid;place-items:center;transition:transform .15s var(--ease)}
+  .close:active{transform:scale(.9)}
+  .close svg{width:16px;height:16px}
+  .hint{margin:0 0 14px;color:var(--muted);font-size:15px}
+  .link{background:none;border:0;padding:0;color:var(--ink);font-size:15px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+
+  .search{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:13px;padding:13px 14px;font-size:16px;transition:border-color .2s}
+  .search:focus{outline:none;border-color:var(--ink)}
+  .btn{margin-top:10px;width:100%;border:0;background:var(--ink);color:var(--bg);border-radius:14px;padding:14px 16px;font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s var(--ease), opacity .2s}
+  .btn:active{transform:scale(.98)}
+  .btn:disabled{opacity:.55}
+  .btn svg{width:17px;height:17px}
+  .results{display:grid;margin-top:8px}
+  .results button{text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:13px 2px;font-size:16px;animation:rise .3s var(--ease) both}
+  .results button:nth-child(2){animation-delay:30ms}.results button:nth-child(3){animation-delay:60ms}.results button:nth-child(4){animation-delay:90ms}.results button:nth-child(5){animation-delay:120ms}
+  .results small{color:var(--muted);font-size:14px;margin-left:6px}
+  .err{font-size:15px;margin:12px 0 0;background:var(--signal);color:var(--on-signal);border-radius:12px;padding:10px 12px}
+  .err:empty{display:none}
+
+  .hours{display:flex;gap:6px;overflow-x:auto;margin:0 calc(var(--pad) * -1);padding:2px var(--pad) 6px;scrollbar-width:none;scroll-snap-type:x proximity}
+  .hours::-webkit-scrollbar{display:none}
+  .hour{flex:none;scroll-snap-align:start;border:0;background:var(--surface);border-radius:15px;width:64px;padding:10px 0 9px;display:flex;flex-direction:column;align-items:center;gap:4px;
+    transition:background-color .25s, color .25s, transform .15s var(--ease)}
+  .hour:active{transform:scale(.95)}
+  .hour .ht{font-size:13px;color:var(--muted);transition:color .25s}
+  .hour svg{width:20px;height:20px}
+  .hour .hv{font-size:17px;font-weight:600}
+  .hour[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+  .hour[aria-pressed=true] .ht{color:color-mix(in srgb, var(--bg) 68%, transparent)}
+  .field{margin-top:18px}
+  .field-label{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;color:var(--muted);margin-bottom:8px}
+  .field-label output{color:var(--ink);font-size:17px;font-weight:600}
+  .sub-head{margin:26px 0 2px;font-size:17px;font-weight:600}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent}
+  input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:var(--line)}
+  input[type=range]::-moz-range-track{height:4px;border-radius:4px;background:var(--line)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--surface);border:0;box-shadow:0 0 0 1px rgba(0,0,0,.08),0 2px 6px rgba(0,0,0,.18);margin-top:-10px;transition:transform .15s var(--ease)}
+  input[type=range]:active::-webkit-slider-thumb{transform:scale(1.12)}
+  input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--surface);border:0;box-shadow:0 0 0 1px rgba(0,0,0,.08),0 2px 6px rgba(0,0,0,.18)}
+
+  .pref{margin-top:22px}
+  .pref h3{margin:0 0 2px;font-size:16px;font-weight:600}
+  .pref p{margin:0 0 10px;font-size:14px;color:var(--muted)}
+  .pref h3 + .seg{margin-top:10px}
+
+  .fb-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .fb-row button{border:0;background:var(--surface);border-radius:16px;padding:18px 6px 16px;font-size:16px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:10px;transition:transform .15s var(--ease)}
+  .fb-row button:active{transform:scale(.95)}
+  .fb-row i{width:28px;height:6px;border-radius:9px;display:block}
+  .calib{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;font-size:15px;color:var(--muted)}
+  .calib button{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:15px;flex:none}
+  .history{display:flex;gap:4px;flex-wrap:wrap;margin-top:12px}
+  .history:empty{display:none}
+  .history i{width:14px;height:6px;border-radius:9px;display:block}
+
+  @media (prefers-reduced-motion: reduce){ *, *::backdrop{transition:none !important;animation:none !important} }
+</style>
+</head>
+<body>
+<main class="app intro">
+
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <clipPath id="bandClip"><rect x="11.2" y="15.4" width="9.6" height="4.4"/></clipPath>
+          <linearGradient id="sheenGrad" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        </defs>
+        <rect width="32" height="32" rx="9" style="fill:var(--logo-bg)"/>
+        <path d="M11.2 7.3 14.2 6.1C14.7 7.3 15.3 7.9 16 7.9S17.3 7.3 17.8 6.1L20.8 7.3 25 11.5 22.5 14 20.8 12.5V25.6H11.2V12.5L9.5 14 7 11.5Z" fill="#FAFAF7"/>
+        <rect x="11.2" y="15.4" width="9.6" height="4.4" fill="#F2E205"/>
+        <rect x="11.2" y="17" width="9.6" height="1.2" fill="#C4C7CA"/>
+        <g clip-path="url(#bandClip)"><rect class="sheen" x="2" y="13" width="6" height="9" fill="url(#sheenGrad)"/></g>
+      </svg>
+      Löpkläder
+    </div>
+    <div class="top-right">
+    <button class="icon-btn" id="meBtn" aria-label="Om dig">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+    </button>
+    <button class="icon-btn" id="whereBtn" aria-label="Byt plats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+    </button>
+    </div>
+  </header>
+
+  <button class="context" id="ctxBtn" aria-label="Ändra tid och väder">
+    <span id="ctxIcon"></span>
+    <span class="ctx-text"><b id="ctxTitle">Välj plats</b><span id="ctxSub">för att hämta vädret</span></span>
+    <span class="edit">Ändra</span>
+  </button>
+
+  <div class="seg pace" data-group="pace" role="group" aria-label="Typ av pass">
+    <button data-v="easy" aria-pressed="true">Lugnt</button>
+    <button data-v="long" aria-pressed="false">Långpass</button>
+    <button data-v="hard" aria-pressed="false">Intervaller</button>
+  </div>
+
+  <section class="panel" aria-live="polite" aria-label="Klädförslag">
+    <p class="for">Det här ska du ha på dig <b id="degree" title="Klä dig för den här temperaturen">0°</b></p>
+    <dl class="outfit" id="items"></dl>
+  </section>
+
+  <div id="alertSlot"></div>
+  <p class="tip" id="tip"></p>
+
+  <div class="bottom">
+    <button class="fb-open" id="fbOpen">Hur kändes passet?</button>
+    <p class="toast" id="toast" role="status"></p>
+    <footer>Väderdata från <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a></footer>
+  </div>
+</main>
+
+<!-- Plats -->
+<dialog id="placeDlg" aria-labelledby="placeTitle">
+  <div class="grabber"></div>
+  <div class="dlg">
+    <div class="dlg-head"><h2 id="placeTitle">Var springer du?</h2><button class="close" data-close aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <form id="searchForm" role="search">
+      <label class="visually-hidden" for="q">Sök ort</label>
+      <input class="search" id="q" type="search" placeholder="Sök ort, till exempel Umeå" autocomplete="off" enterkeyhint="search">
+    </form>
+    <button class="btn" id="locBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      Använd min position
+    </button>
+    <div class="results" id="results"></div>
+    <p class="err" id="err" role="alert"></p>
+  </div>
+</dialog>
+
+<!-- Tid och väder -->
+<dialog id="timeDlg" aria-labelledby="timeTitle">
+  <div class="grabber"></div>
+  <div class="dlg">
+    <div class="dlg-head"><h2 id="timeTitle">När springer du?</h2><button class="close" data-close aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="hint"><span id="updated">Välj plats så hämtas prognosen.</span> <button type="button" class="link" id="changePlace">Byt plats</button></p>
+    <div class="hours" id="hours"></div>
+    <p class="sub-head">Stämmer inte vädret?</p>
+    <p class="hint">Ändra här om det ser annorlunda ut ute.</p>
+    <div class="field">
+      <label class="field-label" for="temp">Temperatur <output id="tempOut" for="temp">5°</output></label>
+      <input type="range" id="temp" min="-25" max="32" step="1" value="5">
+    </div>
+    <div class="field">
+      <label class="field-label" for="wind">Vind <output id="windOut" for="wind">3 m/s</output></label>
+      <input type="range" id="wind" min="0" max="15" step="1" value="3">
+    </div>
+    <div class="field">
+      <div class="field-label">Nederbörd</div>
+      <div class="seg" data-group="precip" role="group" aria-label="Nederbörd">
+        <button data-v="none" aria-pressed="true">Uppehåll</button>
+        <button data-v="drizzle" aria-pressed="false">Dugg</button>
+        <button data-v="rain" aria-pressed="false">Regn</button>
+        <button data-v="snow" aria-pressed="false">Snö</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Ljus</div>
+      <div class="seg" data-group="sky" role="group" aria-label="Ljus">
+        <button data-v="sun" aria-pressed="false">Sol</button>
+        <button data-v="cloud" aria-pressed="true">Mulet</button>
+        <button data-v="dark" aria-pressed="false">Mörkt</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Underlag</div>
+      <div class="seg" data-group="ground" role="group" aria-label="Underlag">
+        <button data-v="dry" aria-pressed="true">Torrt</button>
+        <button data-v="wet" aria-pressed="false">Blött</button>
+        <button data-v="ice" aria-pressed="false">Halt</button>
+      </div>
+    </div>
+    <button class="btn" data-close style="margin-top:24px">Visa kläder</button>
+  </div>
+</dialog>
+
+<!-- Om dig -->
+<dialog id="meDlg" aria-labelledby="meTitle">
+  <div class="grabber"></div>
+  <div class="dlg">
+    <div class="dlg-head"><h2 id="meTitle">Om dig</h2><button class="close" data-close aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="hint">Ger bättre förslag redan från första passet. Dina svar efter passen finjusterar sedan.</p>
+    <div class="pref">
+      <h3>Hur är du i kyla?</h3>
+      <div class="seg" data-pref="base" role="group" aria-label="Hur är du i kyla">
+        <button data-v="-2">Fryser lätt</button>
+        <button data-v="0">Mittemellan</button>
+        <button data-v="2">Blir lätt varm</button>
+      </div>
+    </div>
+    <div class="pref">
+      <h3>Händer</h3>
+      <p>Med kalla händer föreslås handskar tidigare och ett varmare par.</p>
+      <div class="seg" data-pref="hands" role="group" aria-label="Händer">
+        <button data-v="normal">Som vanligt</button>
+        <button data-v="cold">Blir kalla</button>
+      </div>
+    </div>
+    <div class="pref">
+      <h3>Ben</h3>
+      <div class="seg" data-pref="legs" role="group" aria-label="Ben">
+        <button data-v="shorts">Shorts länge</button>
+        <button data-v="normal">Som förslaget</button>
+        <button data-v="tights">Hellre tights</button>
+      </div>
+    </div>
+    <button class="btn" data-close style="margin-top:26px">Klar</button>
+  </div>
+</dialog>
+
+<!-- Efter passet -->
+<dialog id="fbDlg" aria-labelledby="fbTitle">
+  <div class="grabber"></div>
+  <div class="dlg">
+    <div class="dlg-head"><h2 id="fbTitle">Hur kändes passet?</h2><button class="close" data-close aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="hint">Svara när du kommit hem, så anpassas nästa förslag efter dig.</p>
+    <div class="fb-row">
+      <button data-fb="cold"><i style="background:#7E9DB8"></i>Frös</button>
+      <button data-fb="ok"><i style="background:#9AA676"></i>Lagom</button>
+      <button data-fb="hot"><i style="background:#C98A5A"></i>För varmt</button>
+    </div>
+    <div class="calib"><span id="calibText"></span><button id="reset" type="button">Nollställ</button></div>
+    <div class="history" id="history" aria-label="Dina senaste pass"></div>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const state = {precip:"none", sky:"cloud", ground:"dry", pace:"easy"};
+  const KEY = "lopklader.v1";
+  let profile = {offset:0, history:[]};
+  let prefs = {base:0, hands:"normal", legs:"normal"};
+
+  function load(){
+    try{ const s = localStorage.getItem(KEY); if(s){ const p = JSON.parse(s); if(p && typeof p.offset==="number") profile = {offset:p.offset, history:Array.isArray(p.history)?p.history:[]}; } }catch(e){}
+  }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(profile)); }catch(e){} }
+  function loadPrefs(){
+    try{ const p = JSON.parse(localStorage.getItem(KEY + ".prefs") || "null");
+      if(p){ if([-2,0,2].includes(p.base)) prefs.base = p.base; if(["normal","cold"].includes(p.hands)) prefs.hands = p.hands; if(["shorts","normal","tights"].includes(p.legs)) prefs.legs = p.legs; } }catch(e){}
+  }
+  function savePrefs(){ try{ localStorage.setItem(KEY + ".prefs", JSON.stringify(prefs)); }catch(e){} }
+  function renderPrefs(){
+    document.querySelectorAll("[data-pref]").forEach(g => g.querySelectorAll("button").forEach(b =>
+      b.setAttribute("aria-pressed", String(b.dataset.v === String(prefs[g.dataset.pref])))));
+    document.querySelectorAll("[data-pref]").forEach(updateThumb);
+  }
+
+  const deg = v => { v = Math.round(v); return (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) + "°"; };
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+
+  // ---------- Ikoner ----------
+  const CU = '<path d="M7 14h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 7 3.5 3.5 0 0 0 7 14z"/>';
+  const G = {
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+    partly:'<path d="M9 3.5v1.5M3.5 9H5M5.1 5.1l1 1M13 5.1l-1 1"/><path d="M6.3 11.2A3.5 3.5 0 0 1 12.4 8"/><path d="M9 20h8.5a3.5 3.5 0 0 0 .4-7A5 5 0 0 0 8.6 14 3 3 0 0 0 9 20z"/>',
+    moon:'<path d="M19.5 14.5A7.5 7.5 0 1 1 9.5 4.5a6 6 0 0 0 10 10z"/>',
+    cloud:'<path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 11 3.5 3.5 0 0 0 7 18z"/>',
+    rain:CU + '<path d="M8.5 17.5l-1 2.5M12.5 17.5l-1 2.5M16.5 17.5l-1 2.5"/>',
+    drizzle:CU + '<path d="M9 18v1M13 18v1M17 18v1"/>',
+    snow:CU + '<path d="M8 18.5h.01M12 20.5h.01M16 18.5h.01M10 21.5h.01M14 21.5h.01" stroke-width="2.6"/>',
+    wind:'<path d="M3 8.5h10.5a2.5 2.5 0 1 0-2.5-2.5M3 12.5h15a2.5 2.5 0 1 1-2.5 2.5M3 16.5h7"/>',
+    temp:'<path d="M10 13.5V5a2 2 0 1 1 4 0v8.5a4 4 0 1 1-4 0z"/><path d="M12 9v6"/>',
+    ice:'<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9.5 4.5L12 7l2.5-2.5M9.5 19.5L12 17l2.5 2.5"/>',
+  };
+  const icon = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${G[k]||""}</svg>`;
+
+  // ---------- Klädlogik ----------
+  function windChill(t, ms){
+    const v = ms*3.6;
+    if(t > 10 || v < 5) return t;
+    const wc = 13.12 + 0.6215*t - 11.37*Math.pow(v,0.16) + 0.3965*t*Math.pow(v,0.16);
+    return Math.min(t, wc);
+  }
+  function compute(){
+    const t = +$("temp").value, w = +$("wind").value;
+    let feels = windChill(t, w);
+    if(t > 10) feels -= Math.min(w,10)*0.3;
+    if(state.sky==="sun") feels += (t>15?3:2);
+    if(state.precip==="rain") feels -= 2;
+    if(state.precip==="drizzle") feels -= 1;
+    const paceAdj = {easy:0, long:-1, hard:3}[state.pace];
+    const dress = feels + paceAdj + prefs.base + profile.offset; // lägre värde = varmare kläder
+    return {t, w, feels:Math.round(feels), dress:Math.round(dress)};
+  }
+  function outfit(d){
+    const o = {};
+    if(d >= 20){ o.top="Linne eller tunn t-shirt"; o.legs="Korta shorts"; o.head="Keps"; }
+    else if(d >= 14){ o.top="T-shirt"; o.legs="Shorts"; }
+    else if(d >= 9){ o.top="T-shirt, eller tunn långärmad om du är frusen i starten"; o.legs="Shorts eller 3/4-tights"; }
+    else if(d >= 5){ o.top="Långärmad funktionströja"; o.legs="Tights, eller shorts med långa strumpor"; o.head="Pannband om det blåser"; o.hands="Tunna handskar som ryms i fickan"; }
+    else if(d >= 0){ o.top="Långärmad tröja och tunn löparjacka eller väst"; o.legs="Tights"; o.head="Pannband eller tunn mössa"; o.hands="Tunna handskar"; }
+    else if(d >= -6){ o.top="Underställ och vindtät löparjacka"; o.legs="Vintertights"; o.head="Mössa"; o.hands="Handskar"; o.neck="Buff"; }
+    else if(d >= -12){ o.top="Ullunderställ, mellanlager och vindjacka"; o.legs="Vintertights med vindtät framsida"; o.head="Varm mössa"; o.hands="Vantar"; o.neck="Buff som går att dra upp över munnen"; }
+    else { o.top="Ullunderställ, varmt mellanlager och vindjacka"; o.legs="Långkalsong under vindtäta tights"; o.head="Varm mössa eller balaklava"; o.hands="Tjocka vantar med tunna handskar under"; o.neck="Buff över mun och näsa"; }
+    o.feet = d < -6 ? "Ullstrumpor" : d < 5 ? "Strumpor som går över ankeln" : "Tunna löparstrumpor";
+    // Ben efter egen smak
+    if(prefs.legs === "shorts"){
+      if(d >= 9) o.legs = "Shorts";
+      else if(d >= 3) o.legs = "Shorts och långa strumpor";
+    } else if(prefs.legs === "tights"){
+      if(d >= 9 && d < 16) o.legs = "3/4-tights";
+      else if(d >= 5 && d < 9) o.legs = "Tights";
+    }
+    // Kalla händer: handskar tidigare och ett steg varmare
+    if(prefs.hands === "cold" && d < 11){
+      o.hands = d >= 5 ? "Tunna handskar" : d >= 0 ? "Handskar" : d >= -6 ? "Vantar" : "Tjocka vantar med tunna handskar under";
+    }
+    return o;
+  }
+  // Det viktigaste tipset först
+  function topTip(r){
+    if(state.ground==="ice") return "Halt ute. Dubbskor eller broddar, och korta steg i kurvorna.";
+    if(state.sky==="dark") return "Mörkt ute. Reflexväst och pannlampa där det saknas gatubelysning.";
+    if(state.precip==="rain") return "Regn. En tunn vattenavvisande jacka och en keps håller dig torr i ansiktet.";
+    if(state.precip==="snow") return "Snö. En keps under mössan håller snön borta från ögonen.";
+    if(r.w >= 7) return "Blåsigt. Börja med vinden emot dig, så har du medvind hem.";
+    if(state.pace==="hard" && r.dress < 10) return "Ha ett extra lager på uppvärmningen som du kan lägga av innan intervallerna.";
+    if(state.pace==="long" && r.dress < 8) return "På långpass kyls du ner när du blir trött, så hellre lite för varmt.";
+    if(state.sky==="sun" && r.t >= 18) return "Sol och värme. Solskydd, och vatten om passet är längre än en timme.";
+    return "Du ska frysa lite de första fem minuterna. Är det skönt redan i dörren har du för mycket på dig.";
+  }
+
+  // Frost, kyla, mossa, lav, sand, solvärme
+  const STOPS = [[-15,[201,216,228]],[-5,[214,224,230]],[3,[221,226,214]],[10,[228,226,207]],[17,[238,223,192]],[25,[241,210,182]]];
+  function tempColor(d){
+    if(d <= STOPS[0][0]) return STOPS[0][1];
+    for(let i = 1; i < STOPS.length; i++){
+      if(d <= STOPS[i][0]){
+        const [a,ca] = STOPS[i-1], [b,cb] = STOPS[i], f = (d - a) / (b - a);
+        return ca.map((v,k) => Math.round(v + (cb[k] - v) * f));
+      }
+    }
+    return STOPS[STOPS.length-1][1];
+  }
+
+  const SKY = {sun:"sol", cloud:"mulet", dark:"mörkt"};
+  const PREC = {none:"", drizzle:"dugg", rain:"regn", snow:"snö"};
+
+  function render(){
+    const r = compute();
+    $("tempOut").textContent = deg(r.t);
+    $("windOut").textContent = r.w + " m/s";
+    const [cr,cg,cb] = tempColor(r.dress);
+    document.documentElement.style.setProperty("--t", `rgb(${cr},${cg},${cb})`);
+    const degText = "Som " + deg(r.dress);
+    if($("degree").textContent !== degText){ $("degree").textContent = degText; if(!firstOutfit) restart($("degree"), "swap"); }
+
+    const o = outfit(r.dress);
+    const rows = [["Överkropp", o.top], ["Ben", o.legs]];
+    if(o.head) rows.unshift(["Huvud", o.head]);
+    if(o.neck) rows.push(["Hals", o.neck]);
+    if(o.hands) rows.push(["Händer", o.hands]);
+    rows.push(["Fötter", o.feet]);
+    const skip = [!o.head && "huvudet", !o.hands && "händerna"].filter(Boolean);
+    if(skip.length) rows.push([null, "Inget behövs på " + skip.join(" eller ") + "."]);
+    renderOutfit(rows);
+    $("tip").textContent = topTip(r);
+
+    // Väderraden
+    const h = hours[selected];
+    const when = h ? (selected === 0 ? "Nu" : "Kl " + h.label) : null;
+    const parts = [deg(r.t), PREC[state.precip] || SKY[state.sky], r.w + " m/s"];
+    if(state.precip !== "none" && state.sky === "dark") parts.splice(2, 0, "mörkt");
+    if(place){
+      $("ctxTitle").textContent = when ? (place.name === "Din position" ? when + " där du är" : when + " i " + place.name) : place.name;
+      $("ctxSub").textContent = parts.join(", ");
+    } else {
+      $("ctxTitle").textContent = "Eget väder";
+      $("ctxSub").textContent = parts.join(", ");
+    }
+    $("ctxIcon").innerHTML = icon(state.precip !== "none" ? state.precip : state.sky === "dark" ? "moon" : state.sky);
+    renderCalib();
+  }
+
+  let firstOutfit = true;
+  function restart(el, cls){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+  function renderOutfit(rows){
+    const box = $("items");
+    const existing = new Map([...box.children].map(el => [el.dataset.k, el]));
+    const order = [];
+    rows.forEach(([label, text], i) => {
+      const k = label || "skip";
+      let el = existing.get(k);
+      if(el){
+        existing.delete(k);
+        const dd = el.querySelector("dd");
+        if(dd.textContent !== text){ dd.textContent = text; restart(el, "swap"); }
+      } else {
+        el = document.createElement("div");
+        el.dataset.k = k;
+        if(!label) el.className = "skip";
+        el.innerHTML = (label ? `<dt>${label}</dt>` : "") + `<dd></dd>`;
+        el.querySelector("dd").textContent = text;
+        el.style.setProperty("--d", (firstOutfit ? 120 + i * 60 : 0) + "ms");
+        el.classList.add("enter");
+      }
+      order.push(el);
+    });
+    existing.forEach(el => el.remove());
+    order.forEach((el, i) => { if(box.children[i] !== el) box.insertBefore(el, box.children[i] || null); });
+    firstOutfit = false;
+  }
+  $("items").addEventListener("animationend", e => { const row = e.target.closest(".outfit > div"); if(row) row.classList.remove("enter", "swap"); });
+  $("degree").addEventListener("animationend", () => $("degree").classList.remove("swap"));
+
+  function renderCalib(){
+    const off = profile.offset;
+    $("calibText").textContent = off === 0 ? "Inga svar än. Förslagen utgår från en genomsnittslöpare."
+      : off < 0 ? "Du fryser lätt, så förslagen är " + Math.abs(off) + " grader varmare."
+      : "Du blir lätt varm, så förslagen är " + off + " grader svalare.";
+    const col = {cold:"#7E9DB8", ok:"#9AA676", hot:"#C98A5A"};
+    $("history").innerHTML = profile.history.slice(-24).map(h => `<i title="${esc(h.d)}" style="background:${col[h.f]}"></i>`).join("");
+  }
+
+  function updateThumb(g){
+    const btns = [...g.querySelectorAll("button")];
+    const i = btns.findIndex(b => b.getAttribute("aria-pressed") === "true");
+    g.style.setProperty("--n", btns.length);
+    if(i >= 0) g.style.setProperty("--i", i);
+    g.classList.toggle("no-sel", i < 0);
+  }
+  document.querySelectorAll(".seg").forEach(g => { const t = document.createElement("span"); t.className = "thumb"; t.setAttribute("aria-hidden", "true"); g.prepend(t); updateThumb(g); });
+  function setSeg(group, v){
+    const g = document.querySelector(`.seg[data-group="${group}"]`);
+    g.querySelectorAll("button").forEach(c => c.setAttribute("aria-pressed", c.dataset.v===v ? "true" : "false"));
+    updateThumb(g);
+    state[group] = v;
+  }
+  document.querySelectorAll(".seg[data-group]").forEach(g => g.addEventListener("click", e => {
+    const b = e.target.closest("button"); if(!b) return;
+    setSeg(g.dataset.group, b.dataset.v); render();
+  }));
+  $("temp").addEventListener("input", render);
+  $("wind").addEventListener("input", render);
+
+  // ---------- Blad ----------
+  const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function openDlg(id){
+    const d = $(id); if(d.open) return;
+    d.classList.remove("closing");
+    if(d.showModal) d.showModal(); else d.setAttribute("open","");
+    d.querySelectorAll(".seg").forEach(updateThumb);
+  }
+  function closeDlg(d){
+    return new Promise(res => {
+      if(!d.open){ res(); return; }
+      const done = () => { d.classList.remove("closing"); if(d.close) d.close(); else d.removeAttribute("open"); res(); };
+      if(reduceMotion()){ done(); return; }
+      d.classList.add("closing");
+      setTimeout(done, 210);
+    });
+  }
+  document.querySelectorAll("dialog").forEach(d => d.addEventListener("cancel", e => { e.preventDefault(); closeDlg(d); }));
+  document.querySelectorAll("dialog").forEach(d => {
+    d.addEventListener("click", e => { if(e.target === d || e.target.closest("[data-close]")) closeDlg(d); });
+  });
+  $("whereBtn").addEventListener("click", () => { openDlg("placeDlg"); setTimeout(() => $("q").focus(), 60); });
+  $("ctxBtn").addEventListener("click", () => { if(!hours.length && !place) { openDlg("placeDlg"); return; } openDlg("timeDlg"); });
+  $("fbOpen").addEventListener("click", () => openDlg("fbDlg"));
+  $("changePlace").addEventListener("click", async () => { await closeDlg($("timeDlg")); openDlg("placeDlg"); setTimeout(() => $("q").focus(), 60); });
+  $("meBtn").addEventListener("click", () => openDlg("meDlg"));
+  document.querySelectorAll("[data-pref]").forEach(g => g.addEventListener("click", e => {
+    const b = e.target.closest("button"); if(!b) return;
+    const k = g.dataset.pref;
+    prefs[k] = k === "base" ? +b.dataset.v : b.dataset.v;
+    savePrefs(); renderPrefs(); render();
+  }));
+
+  let toastTimer;
+  function toast(msg){ $("toast").textContent = msg; restart($("toast"), "show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => $("toast").textContent = "", 5000); }
+
+  document.querySelectorAll("[data-fb]").forEach(b => b.addEventListener("click", () => {
+    const f = b.dataset.fb;
+    if(f==="cold") profile.offset = Math.max(-8, profile.offset - 2);
+    if(f==="hot") profile.offset = Math.min(8, profile.offset + 2);
+    profile.history.push({f, d: new Date().toLocaleDateString("sv-SE") + ", " + deg(+$("temp").value)});
+    if(profile.history.length > 50) profile.history = profile.history.slice(-50);
+    save(); render();
+    closeDlg($("fbDlg"));
+    toast(f==="ok" ? "Bra, förslagen fortsätter som nu." : f==="cold" ? "Nästa gång föreslås varmare kläder." : "Nästa gång föreslås lättare kläder.");
+  }));
+  $("reset").addEventListener("click", () => { profile = {offset:0, history:[]}; save(); render(); });
+
+  // ---------- Väder från Open-Meteo ----------
+  let hours = [], quarter = [], selected = 0, place = null, fetchedAt = 0;
+
+  function codeToPrecip(code, mm, snow){
+    if((code>=71 && code<=77) || code===85 || code===86 || snow>0) return "snow";
+    if((code>=61 && code<=67) || (code>=80 && code<=82) || code>=95) return "rain";
+    if(code>=51 && code<=57) return "drizzle";
+    if(mm >= 0.5) return "rain";
+    if(mm > 0) return "drizzle";
+    return "none";
+  }
+  function hourGlyph(h){
+    if(h.precip !== "none") return h.precip;
+    if(!h.day) return "moon";
+    if(h.cloud < 40) return "sun";
+    if(h.cloud < 75) return "partly";
+    return "cloud";
+  }
+  function buildHours(j){
+    const H = j.hourly, off = j.utc_offset_seconds || 0;
+    const nowKey = new Date(Date.now() + off*1000).toISOString().slice(0,13);
+    let idx = H.time.findIndex(t => t.slice(0,13) === nowKey);
+    if(idx < 0) idx = Math.max(0, H.time.findIndex(t => t.slice(0,13) > nowKey));
+    const out = [];
+    for(let i = idx; i < Math.min(H.time.length, idx + 13); i++){
+      let recent = 0, snowed = false;
+      for(let k = Math.max(0, i-12); k <= i; k++){ recent += H.precipitation[k] || 0; if((H.snowfall[k]||0) > 0) snowed = true; }
+      const t = H.temperature_2m[i];
+      const precip = codeToPrecip(H.weather_code[i], H.precipitation[i] || 0, H.snowfall[i] || 0);
+      let ground = "dry";
+      if(t <= 1 && (recent > 0.2 || snowed)) ground = "ice";
+      else if(recent > 0.5 || precip !== "none") ground = "wet";
+      out.push({label: i===idx ? "Nu" : H.time[i].slice(11,16), ts: Date.parse(H.time[i] + ":00Z") - off*1000,
+        t, w: H.wind_speed_10m[i], cloud: H.cloud_cover[i], day: H.is_day[i]===1, precip, ground});
+    }
+    quarter = [];
+    const M = j.minutely_15;
+    if(M && M.time){
+      for(let k = 0; k < M.time.length; k++){
+        const code = M.weather_code ? M.weather_code[k] : 0, mm = M.precipitation ? (M.precipitation[k] || 0) : 0, t2 = M.temperature_2m[k];
+        if(t2 == null) continue;
+        const wet = mm >= 0.1 || code >= 51;
+        quarter.push({ts: Date.parse(M.time[k] + ":00Z") - off*1000, t: t2, w: M.wind_speed_10m ? M.wind_speed_10m[k] : null, wet,
+          snow: wet && (((code>=71 && code<=77) || code===85 || code===86) || t2 <= 0.5)});
+      }
+    }
+    return out;
+  }
+
+  // ---------- Omslag i vädret ----------
+  const WINDOW = 120 * 60 * 1000;
+  function fmtIn(ms){
+    const m = Math.max(5, Math.round(ms / 60000 / 5) * 5);
+    if(m < 55) return "om ca " + m + " min";
+    if(m < 75) return "om ca en timme";
+    return "om ca " + String(Math.round(m / 30) / 2).replace(".", ",") + " timmar";
+  }
+  function upcoming(i){
+    const h = hours[i]; if(!h) return null;
+    const start = i === 0 ? Date.now() : h.ts, end = start + WINDOW;
+    const q = quarter.filter(p => p.ts > start && p.ts <= end);
+    const pts = (i === 0 && q.length >= 4) ? q
+      : hours.slice(i + 1).filter(p => p.ts <= end + 1).map(p => ({ts: p.ts, t: p.t, w: p.w, wet: p.precip !== "none", snow: p.precip === "snow"}));
+    const light = hours.slice(i + 1).filter(p => p.ts <= end + 1);
+    return {h, start, pts, light};
+  }
+  function weatherAlerts(i){
+    const u = upcoming(i); if(!u || !u.pts.length) return [];
+    const {h, start, pts, light} = u, out = [];
+    const baseWet = h.precip !== "none";
+    if(!baseWet){
+      const p = pts.find(p => p.wet);
+      if(p) out.push({ico: p.snow ? "snow" : "rain", title: (p.snow ? "Snö" : "Regn") + " " + fmtIn(p.ts - start),
+        text: p.snow ? "Ta en vindjacka och en keps under mössan." : "Ta med en tunn vattenavvisande jacka, eller kör ett kortare varv först."});
+    } else {
+      const lastWet = pts.map(p => p.wet).lastIndexOf(true);
+      if(lastWet < pts.length - 1){
+        const p = pts[lastWet + 1];
+        out.push({good: true, ico: "partly", title: "Uppehåll " + fmtIn(p.ts - start), text: "Kan du vänta lite slipper du bli blöt."});
+      }
+    }
+    const minP = pts.reduce((a, p) => p.t < a.t ? p : a, pts[0]);
+    const maxP = pts.reduce((a, p) => p.t > a.t ? p : a, pts[0]);
+    if(h.t - minP.t >= 3) out.push({ico: "temp", title: "Kallare, " + deg(minP.t) + " " + fmtIn(minP.ts - start),
+      text: "Ha ett varmare lager än förslaget, eller handskar och mössa i fickan."});
+    else if(maxP.t - h.t >= 3) out.push({good: true, ico: "temp", title: "Varmare, " + deg(maxP.t) + " " + fmtIn(maxP.ts - start),
+      text: "Välj ett ytterlager som du kan knyta runt midjan."});
+    const windy = pts.filter(p => p.w != null);
+    if(windy.length){
+      const wMax = windy.reduce((a, p) => p.w > a.w ? p : a, windy[0]);
+      if(wMax.w - h.w >= 4 && wMax.w >= 7) out.push({ico: "wind", title: "Vinden ökar till " + Math.round(wMax.w) + " m/s " + fmtIn(wMax.ts - start),
+        text: "En vindtät jacka gör stor skillnad."});
+    }
+    if(h.day){
+      const d = light.find(p => !p.day);
+      if(d) out.push({ico: "moon", title: "Mörkt " + fmtIn(d.ts - start), text: "Ta reflexväst och pannlampa även om det är ljust när du går ut."});
+    }
+    const wetAround = baseWet || h.ground !== "dry" || pts.some(p => p.wet);
+    if(h.t > 0.5 && minP.t <= 0 && wetAround) out.push({ico: "ice", title: "Minusgrader " + fmtIn(minP.ts - start),
+      text: "Blöta vägar kan frysa till. Broddar eller dubbskor är ett säkert val."});
+    return out;
+  }
+  let lastAlert = null;
+  function renderAlerts(){
+    const list = hours.length ? weatherAlerts(selected) : [];
+    if(!list.length){ $("alertSlot").innerHTML = ""; lastAlert = null; return; }
+    const [a, ...rest] = list;
+    const allGood = list.every(x => x.good);
+    const more = rest.length ? `<span class="more">+${rest.length} till</span>` : "";
+    const extras = rest.map(x => `<div class="extra">${icon(x.ico)}<div><strong>${esc(x.title)}</strong><p>${esc(x.text)}</p></div></div>`).join("");
+    const isNew = lastAlert !== a.title; lastAlert = a.title;
+    $("alertSlot").innerHTML = `<details class="alert${allGood ? " good" : ""}${isNew ? " enter" : ""}"><summary>${icon(a.ico)}<strong>${esc(a.title)}</strong>${more}</summary><div class="alert-body"><p>${esc(a.text)}</p>${extras}</div></details>`;
+  }
+
+  function renderHours(){
+    $("hours").innerHTML = hours.map((h,i) =>
+      `<button class="hour" data-i="${i}" aria-pressed="${i===selected}" aria-label="${h.label}, ${deg(h.t)}"><span class="ht">${h.label}</span>${icon(hourGlyph(h))}<span class="hv">${deg(h.t)}</span></button>`
+    ).join("");
+  }
+  function applyHour(i){
+    selected = i; const h = hours[i]; if(!h) return;
+    $("temp").value = clamp(Math.round(h.t), -25, 32);
+    $("wind").value = clamp(Math.round(h.w), 0, 15);
+    setSeg("precip", h.precip);
+    setSeg("sky", !h.day ? "dark" : h.cloud < 40 ? "sun" : "cloud");
+    setSeg("ground", h.ground);
+    renderHours(); render(); renderAlerts();
+  }
+  $("hours").addEventListener("click", e => { const b = e.target.closest(".hour"); if(b) applyHour(+b.dataset.i); });
+
+  async function getWeather(lat, lon, name){
+    $("err").textContent = ""; $("ctxSub").textContent = "Hämtar prognosen…";
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat.toFixed(3) + "&longitude=" + lon.toFixed(3) +
+      "&hourly=temperature_2m,wind_speed_10m,precipitation,snowfall,weather_code,cloud_cover,is_day" +
+      "&minutely_15=temperature_2m,precipitation,wind_speed_10m,weather_code&forecast_minutely_15=12" +
+      "&wind_speed_unit=ms&timezone=auto&past_hours=12&forecast_hours=14";
+    try{
+      const r = await fetch(url);
+      if(!r.ok) throw new Error("HTTP " + r.status);
+      const j = await r.json();
+      hours = buildHours(j);
+      if(!hours.length) throw new Error("tom prognos");
+      place = {lat, lon, name}; fetchedAt = Date.now();
+      try{ localStorage.setItem(KEY + ".place", JSON.stringify(place)); }catch(e){}
+            $("updated").textContent = "Prognos för " + name + ", uppdaterad " + new Date().toLocaleTimeString("sv-SE", {hour:"2-digit", minute:"2-digit"}) + ".";
+      closeDlg($("placeDlg"));
+      applyHour(0);
+    }catch(e){
+      render();
+      $("err").textContent = "Prognosen gick inte att hämta. Kontrollera att du är uppkopplad och försök igen, eller ändra vädret själv.";
+      openDlg("placeDlg");
+    }
+  }
+
+  $("locBtn").addEventListener("click", () => {
+    $("err").textContent = "";
+    if(!navigator.geolocation){ $("err").textContent = "Webbläsaren kan inte dela din position. Sök på en ort i stället."; return; }
+    $("locBtn").disabled = true;
+    navigator.geolocation.getCurrentPosition(
+      p => { $("locBtn").disabled = false; getWeather(p.coords.latitude, p.coords.longitude, "Din position"); },
+      () => { $("locBtn").disabled = false; $("err").textContent = "Positionen gick inte att hämta. Tillåt plats för sidan, eller sök på en ort i stället."; },
+      {timeout: 15000, maximumAge: 10*60*1000}
+    );
+  });
+
+  $("searchForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const q = $("q").value.trim(); if(!q) return;
+    $("err").textContent = ""; $("results").innerHTML = "";
+    try{
+      const r = await fetch("https://geocoding-api.open-meteo.com/v1/search?count=5&language=sv&format=json&name=" + encodeURIComponent(q));
+      const j = await r.json();
+      const res = j.results || [];
+      if(!res.length){ $("err").textContent = "Ingen ort hittades. Kontrollera stavningen."; return; }
+      $("results").innerHTML = res.map((p,i) => `<button type="button" data-i="${i}">${esc(p.name)}<small>${esc([p.admin1, p.country].filter(Boolean).join(", "))}</small></button>`).join("");
+      $("results").onclick = ev => {
+        const b = ev.target.closest("button"); if(!b) return;
+        const p = res[+b.dataset.i];
+        $("results").innerHTML = ""; $("q").value = ""; $("q").blur();
+        getWeather(p.latitude, p.longitude, p.name);
+      };
+    }catch(err){ $("err").textContent = "Sökningen gick inte att göra. Kontrollera att du är uppkopplad."; }
+  });
+
+  setInterval(() => { if(hours.length) renderAlerts(); }, 5 * 60 * 1000);
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible" && place && Date.now() - fetchedAt > 20*60*1000) getWeather(place.lat, place.lon, place.name);
+  });
+
+  let saved = null;
+  try{ saved = JSON.parse(localStorage.getItem(KEY + ".place") || "null"); }catch(e){}
+  if(saved && typeof saved.lat === "number") place = saved; else saved = null;
+  load();
+  loadPrefs();
+  renderPrefs();
+  render();
+  if(saved) getWeather(saved.lat, saved.lon, saved.name);
+  else { $("ctxTitle").textContent = "Välj plats"; $("ctxSub").textContent = "för att hämta vädret"; openDlg("placeDlg"); }
+
+  if("serviceWorker" in navigator && location.protocol === "https:"){
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
