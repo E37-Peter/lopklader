@@ -6,6 +6,11 @@ Klädförslag för löpning utifrån vädret där du är. Appen lär sig hur du 
 
 ## Så funkar den
 
+- Formspråket kommer från friidrottsbanan: tartanrött, numrerade banor och en resultattavla med temperaturen du ska klä dig för.
+- Överst står svaret i en mening, i den röst du väljer (Saklig, Peppig eller Torr).
+- En tidslinje visar temperatur, regn, mörker och den bästa tiden de närmaste tolv timmarna. Dra för att välja när du springer.
+- Efter passet frågar startsidan själv hur det kändes.
+
 - Hämtar prognos timme för timme (och kvartsvis för den närmaste tiden) från [Open-Meteo](https://open-meteo.com), gratis och utan nyckel.
 - Räknar fram en upplevd temperatur med vindavkylning, sol, nederbörd och typ av pass, och föreslår kläder för huvud, överkropp, ben, händer och fötter.
 - Varnar när vädret slår om de närmaste två timmarna: regn, kyla, vind, mörker och risk för halka.
