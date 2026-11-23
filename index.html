@@ -144,10 +144,11 @@
   .lay .lab span{display:block;font-size:12.5px;text-wrap:balance;color:var(--muted);margin-top:1px}
   .lay .it svg{filter:drop-shadow(var(--sx, 0) var(--sy, 0) var(--sb, 0) var(--sc, transparent));transition:filter .6s var(--ease)}
   .lay .fx{position:absolute;inset:0;pointer-events:none}
-  .sky{position:fixed;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+  #before{position:relative}
+  .sky{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
   .hidden-page .fx i{animation-play-state:paused}
-  .fx .drop{position:absolute;width:1.6px;height:15px;border-radius:1px;background:var(--rain);rotate:var(--a);opacity:0;animation:fall var(--t, .75s) cubic-bezier(.5,0,1,1) var(--d) var(--n, 1) both}
-  @keyframes fall{0%{opacity:0;transform:translateY(-34px)}15%{opacity:.9}100%{opacity:0;transform:translateY(80px)}}
+  .fx .drop{position:absolute;width:1.2px;height:16px;border-radius:1px;background:linear-gradient(to bottom, transparent, color-mix(in srgb, var(--rain) 80%, var(--paper)));rotate:var(--a);opacity:0;animation:fall var(--t, .75s) cubic-bezier(.5,0,1,1) var(--d) var(--n, 1) both}
+  @keyframes fall{0%{opacity:0;transform:translateY(-34px)}15%{opacity:.7}100%{opacity:0;transform:translateY(80px)}}
   .fx .bead{position:absolute;width:6px;height:7px;margin:-3.5px;border-radius:50% 50% 50% 50% / 42% 42% 58% 58%;background:radial-gradient(circle at 36% 32%, rgba(255,255,255,.95) 0 16%, transparent 24%), radial-gradient(circle at 50% 65%, #A9C6EA, var(--rain) 70%);box-shadow:0 .5px 0 rgba(0,0,0,.25);animation:pop .3s var(--ease) var(--d) both}
   .fx .snowdot{position:absolute;width:4.5px;height:4.5px;margin:-2px;border-radius:50%;background:#fff;box-shadow:0 0 0 .5px rgba(0,0,0,.08);animation:pop .5s ease var(--d) both}
   @keyframes pop{from{opacity:0;transform:scale(0)}}
@@ -980,7 +981,8 @@
     fx.className = "fx"; fx.setAttribute("aria-hidden", "true");
     let a = 7; const rnd = () => (a = (a * 16807) % 2147483647) / 2147483647;
     const W = el.clientWidth, H = el.clientHeight, slant = clamp(w * 1.8, 0, 26);
-    const VW = innerWidth, VH = innerHeight;
+    const bef = $("before"), top0 = $("poster").offsetTop + $("poster").offsetHeight + 8;
+    const VW = bef.clientWidth, VH = Math.max(200, bef.scrollHeight - top0);
     const spread = (i, n) => ((i + .15 + .7 * rnd()) / n);
     const order = n => { const a = [...Array(n).keys()]; for(let i = n - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
     let s = "", sky = "";
@@ -995,16 +997,16 @@
       // först en skur, sedan ett lätt regn som håller i så länge det regnar
       // fallande regn över hela skärmen, jämnt utspritt
       if(animate){ const n = p === "rain" ? 34 : 16, ys = order(n); for(let i = 0; i < n; i++)
-        sky += `<i class="drop" style="left:${(spread(i, n) * VW).toFixed(0)}px;top:${(spread(ys[i], n) * VH).toFixed(0)}px;--d:${(rnd() * 800).toFixed(0)}ms;--a:${slant}deg;--n:3"></i>`; }
+        sky += `<i class="drop" style="left:${(spread(i, n) * VW).toFixed(0)}px;top:${(top0 + spread(ys[i], n) * VH).toFixed(0)}px;--d:${(rnd() * 800).toFixed(0)}ms;--a:${slant}deg;--n:3"></i>`; }
       if(!reduceMotion()){ const n = p === "rain" ? 16 : 8, ys = order(n); for(let i = 0; i < n; i++)
-        sky += `<i class="drop" style="left:${(spread(i, n) * VW).toFixed(0)}px;top:${(spread(ys[i], n) * VH).toFixed(0)}px;--d:${(rnd() * 2400).toFixed(0)}ms;--t:${(800 + rnd() * 500).toFixed(0)}ms;--a:${slant}deg;--n:infinite"></i>`; }
+        sky += `<i class="drop" style="left:${(spread(i, n) * VW).toFixed(0)}px;top:${(top0 + spread(ys[i], n) * VH).toFixed(0)}px;--d:${(rnd() * 2400).toFixed(0)}ms;--t:${(800 + rnd() * 500).toFixed(0)}ms;--a:${slant}deg;--n:infinite"></i>`; }
       onItems("bead", p === "rain" ? 4 : 2, p === "rain" ? 1 : 0, 450);
     }
     if(p === "snow"){
       if(animate){ const ys = order(26); for(let i = 0; i < 26; i++)
-        sky += `<i class="flake" style="left:${(spread(i, 26) * VW).toFixed(0)}px;top:${(spread(ys[i], 26) * VH).toFixed(0)}px;--d:${(rnd() * 1400).toFixed(0)}ms;--x:${(w * 3 + rnd() * 14 - 7).toFixed(0)}px"></i>`; }
+        sky += `<i class="flake" style="left:${(spread(i, 26) * VW).toFixed(0)}px;top:${(top0 + spread(ys[i], 26) * VH).toFixed(0)}px;--d:${(rnd() * 1400).toFixed(0)}ms;--x:${(w * 3 + rnd() * 14 - 7).toFixed(0)}px"></i>`; }
       if(!reduceMotion()){ const ys = order(12); for(let i = 0; i < 12; i++)
-        sky += `<i class="flake" style="left:${(spread(i, 12) * VW).toFixed(0)}px;top:${(spread(ys[i], 12) * VH).toFixed(0)}px;--d:${(rnd() * 4000).toFixed(0)}ms;--t:${(3000 + rnd() * 1500).toFixed(0)}ms;--n:infinite;--x:${(w * 3 + rnd() * 14 - 7).toFixed(0)}px"></i>`; }
+        sky += `<i class="flake" style="left:${(spread(i, 12) * VW).toFixed(0)}px;top:${(top0 + spread(ys[i], 12) * VH).toFixed(0)}px;--d:${(rnd() * 4000).toFixed(0)}ms;--t:${(3000 + rnd() * 1500).toFixed(0)}ms;--n:infinite;--x:${(w * 3 + rnd() * 14 - 7).toFixed(0)}px"></i>`; }
       onItems("snowdot", 6, 2, 900);
     }
     if(gust && animate){
