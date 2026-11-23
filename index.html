@@ -616,7 +616,30 @@
     o.hands = outfit(r.part.hands).hands;
     o.legs = outfit(r.part.legs).legs;
     o.feet = outfit(r.part.feet).feet;
+    // Sol: solglasögon, solskydd och keps. Påverkas inte av inlärningen.
+    const g = sunGear();
+    if(g.eyes) o.eyes = "Solglasögon, " + g.eyes;
+    if(g.skin) o.skin = "Solskydd, " + g.skin;
+    if(!o.head && r.part.head >= 9 && (g.uv >= 3 || state.precip === "rain" || state.precip === "drizzle"))
+      o.head = g.uv >= 3 ? "Keps mot solen" : "Keps mot regnet";
     return o;
+  }
+  // Hur mycket sol passet får: UV-index, låg sol i motljus och sol på snö
+  function sunGear(){
+    const h = hours[selected];
+    const clear = state.sky === "sun" && state.precip === "none";
+    const uv = h ? h.uv : (clear && +$("temp").value >= 15 ? 4 : 0);
+    const at = !h || selected === 0 ? Date.now() : h.ts, M = 60 * 1000;
+    const near = arr => arr.some(t => Math.abs(at - t) < 75 * M);
+    const low = clear && (near(sun.rise) || near(sun.set));
+    const snow = clear && h && (h.snowDepth > .01 || state.ground === "ice");
+    const ux = "UV " + Math.round(uv);
+    const out = {uv};
+    if(low) out.eyes = "låg sol i motljus";
+    else if(snow) out.eyes = "sol på snö";
+    else if(uv >= 3) out.eyes = "stark sol";
+    if(uv >= 3 || (state.pace === "long" && uv >= 2)) out.skin = ux;
+    return out;
   }
   // Korta namn för meningen överst och för "Du hade på dig"
   function shortTop(d){
@@ -709,6 +732,9 @@
     band: {w:24, h:8, svg: () => `<rect x="0" y="0" width="24" height="7.5" rx="3.75" style="${RED}"/>` + seam("M3 3.75 H21", .35)},
     cap: {w:28, h:14, svg: () => `<path d="M2 13 Q2 2 11 2 Q20 2 20 13 Z" style="${RED}"/><path d="M18 10 Q25 9 28 13.5 H18 Z" style="${RED}"/><circle cx="11" cy="2" r="1.4" style="${RED}"/>` + seam("M11 3 Q8 7 8 13 M11 3 Q14 7 14 13", .35)},
     bala: {w:22, h:32, svg: () => `<path d="M11 0 Q22 0 22 12 V26 Q22 32 16 32 H6 Q0 32 0 26 V12 Q0 0 11 0 Z" style="${RED}"/><rect x="5" y="9" width="12" height="7" rx="3.5" style="fill:var(--paper)"/>`},
+    // solglasögon (ca 15 cm breda) och en tub solskydd
+    glasses: {w:15, h:6.5, svg: () => `<g style="${RED}"><path d="M.3 .6 H6.6 Q7.1 .6 7 1.6 L6.6 4.4 Q6.3 6.3 4.4 6.3 H2.3 Q.8 6.3 .6 4.6 L.1 1.4 Q0 .6 .3 .6 Z"/><path d="M14.7 .6 H8.4 Q7.9 .6 8 1.6 L8.4 4.4 Q8.7 6.3 10.6 6.3 H12.7 Q14.2 6.3 14.4 4.6 L14.9 1.4 Q15 .6 14.7 .6 Z"/></g><path d="M6.8 1.6 Q7.5 .8 8.2 1.6 M0 .9 H15" fill="none" stroke-width=".9" style="stroke:var(--red)"/>` + seam("M1.6 1.9 L1.3 3.6 M9.6 1.9 L9.3 3.6", .5)},
+    tube: {w:6, h:17, svg: () => `<rect x="1.6" y="0" width="2.8" height="3" rx=".6" style="${RED}"/><path d="M.6 3.4 H5.4 L5.8 15.6 Q5.8 17 4.6 17 H1.4 Q.2 17 .2 15.6 Z" style="${RED};${sep}"/>` + seam("M1.4 8 H4.6 M1.4 11 H4.6", .45)},
     buff: {w:22, h:24, svg: () => `<path d="M0 2 Q11 5 22 2 V22 Q11 25 0 22 Z" style="${RED}"/>` + seam("M0.5 7 Q11 10 21.5 7 M0.5 17 Q11 20 21.5 17", .35)},
   };
   // Handskar och vantar, ett par. Den bakre är spegelvänd och förskjuten.
@@ -736,7 +762,7 @@
 
   // Klädförslaget som en lista med plagg att rita
   function splitSv(s){
-    const m = s.match(/^(.+?)(,? (?:eller|som|om|med|över|under) .+)$/);
+    const m = s.match(/^(.+?)(,? (?:eller|som|om|med|över|under|mot) .+)$/) || s.match(/^([^,]+)(, .+)$/);
     return m ? [m[1], m[2].replace(/^,? /, "")] : [s, ""];
   }
   function layItems(o){
@@ -774,6 +800,8 @@
       out.push({slot:"hands", kind, label:a, sub:b.replace("tunna handskar", "handskar")});
     }
     out.push({slot:"feet", kind:feet, label:feetLabel[0].replace(/^Tunna löparstrumpor$/, "Tunna strumpor"), sub:feetLabel[1].replace(/^som går /, "")});
+    if(o.eyes){ const [a, b] = splitSv(o.eyes); out.push({slot:"eyes", kind:"glasses", label:a, sub:b}); }
+    if(o.skin){ const [a, b] = splitSv(o.skin); out.push({slot:"skin", kind:"tube", label:a, sub:b}); }
     out.forEach(it => { it.label = cap(it.label); it.key = it.slot + ":" + (it.layers ? it.layers.join("+") : it.kind); });
     return out;
   }
@@ -789,7 +817,7 @@
     return {w: s.w, h: s.h, svg: s.svg(), cx: s.w / 2, pad: 2};
   }
 
-  const LAY_ORDER = ["top","legs","head","neck","hands","feet"];
+  const LAY_ORDER = ["top","legs","head","eyes","neck","hands","feet","skin"];
   let layKeys = null, layLast = "";
   function renderLay(o, force){
     const el = $("lay");
@@ -808,7 +836,7 @@
     const hOf = it => it.s.h * SC + lblH(it);
     const pos = [];
     const top = by.top, legs = by.legs;
-    const acc = ["head","neck","hands","feet"].map(k => by[k]).filter(Boolean);
+    const acc = ["head","eyes","neck","hands","feet","skin"].map(k => by[k]).filter(Boolean);
     // få plagg och korta byxor: tillbehören läggs under byxorna i stället för på en egen rad
     const stack = legs.s.h < 50 && acc.length <= 2;
     const colB = stack ? [legs, ...acc] : [legs];
@@ -823,12 +851,17 @@
     let y = stack ? (h1 - hB) / 2 : 0;
     colB.forEach(it => { pos.push({it, x: xB + (wB - it.s.w * SC) / 2, y, lw: 130}); y += hOf(it) + 12; });
     // rad 2: tillbehören, nederkanten i linje så att etiketterna hamnar på rad
-    const row = stack ? [] : acc;
-    if(row.length){
+    // högst fyra per rad; fem eller sex delas jämnt på två rader
+    const rest = stack ? [] : acc.slice();
+    const per = rest.length > 4 ? Math.ceil(rest.length / 2) : 4;
+    let yr = h1 + 16;
+    while(rest.length){
+      const row = rest.splice(0, per);
       const slot = Math.min(W / row.length, 104);
       const x2 = (W - slot * row.length) / 2;
       const accH = Math.max(...row.map(i => i.s.h)) * SC;
-      row.forEach((it, n) => pos.push({it, lw: Math.floor(slot - 4), x: x2 + slot * n + (slot - it.s.w * SC) / 2, y: h1 + 16 + accH - it.s.h * SC}));
+      row.forEach((it, n) => pos.push({it, lw: Math.floor(slot - 4), x: x2 + slot * n + (slot - it.s.w * SC) / 2, y: yr + accH - it.s.h * SC}));
+      yr += accH + Math.max(...row.map(lblH)) + 18;
     }
     const off = 0;
     const H = Math.max(...pos.map(p => p.y + hOf(p.it)));
@@ -905,6 +938,8 @@
     rows.push(["Ben", o.legs]);
     if(o.hands) rows.push(["Händer", o.hands]);
     rows.push(["Fötter", o.feet]);
+    if(o.eyes) rows.push(["Ögon", o.eyes.replace(/,.*/, "")]);
+    if(o.skin) rows.push(["Hud", o.skin.replace(/,.*/, "")]);
     const skip = [!o.head && "huvudet", !o.hands && "händerna"].filter(Boolean);
     $("skip").textContent = skip.length ? "Inget behövs på " + skip.join(" eller ") + "." : "";
     if(hours.length || !place || weatherFailed) renderLay(o);
@@ -1178,7 +1213,8 @@
       if(t <= 1 && (recent > 0.2 || snowed)) ground = "ice";
       else if(recent > 0.5 || precip !== "none") ground = "wet";
       out.push({label: i===idx ? "Nu" : H.time[i].slice(11,16), ts: Date.parse(H.time[i] + ":00Z") - off*1000,
-        t, w: H.wind_speed_10m[i], cloud: H.cloud_cover[i], day: H.is_day[i]===1, precip, ground, mm});
+        t, w: H.wind_speed_10m[i], cloud: H.cloud_cover[i], day: H.is_day[i]===1, precip, ground, mm,
+        uv: H.uv_index ? (H.uv_index[i] || 0) : 0, snowDepth: H.snow_depth ? (H.snow_depth[i] || 0) : 0});
     }
     quarter = [];
     const M = j.minutely_15;
@@ -1386,7 +1422,7 @@
     $("err").textContent = "";
     if(!afterMode) $("whereSub").textContent = "Hämtar prognosen…";
     const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat.toFixed(3) + "&longitude=" + lon.toFixed(3) +
-      "&hourly=temperature_2m,wind_speed_10m,precipitation,snowfall,weather_code,cloud_cover,is_day" +
+      "&hourly=temperature_2m,wind_speed_10m,precipitation,snowfall,weather_code,cloud_cover,is_day,uv_index,snow_depth" +
       "&minutely_15=temperature_2m,precipitation,wind_speed_10m,weather_code&forecast_minutely_15=12" +
       "&daily=sunrise,sunset&forecast_days=3" +
       "&wind_speed_unit=ms&timezone=auto&past_hours=12&forecast_hours=27";
