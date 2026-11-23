@@ -6,8 +6,9 @@ Klädförslag för löpning utifrån vädret där du är. Appen lär sig hur du 
 
 ## Så funkar den
 
-- Formspråket kommer från friidrottsbanan: tartanrött, numrerade banor och en resultattavla med temperaturen du ska klä dig för.
-- Överst står svaret i en mening, i den röst du väljer (Saklig, Peppig eller Torr).
+- Svaret står som en affisch: plaggen i stor kursiv stil, med ett löparpiktogram som visar vad du ska ha på dig. Plagg är svarta, bar hud är en kontur och mössa, buff och handskar är röda.
+- Figuren klär på sig vid start, bara ändrade plagg rör sig när förslaget ändras, och den tar några kliv om du trycker på den.
+- Under figuren står en notis i den röst du väljer (Saklig, Peppig eller Torr).
 - En tidslinje visar temperatur, regn, mörker och den bästa tiden de närmaste tolv timmarna. Dra för att välja när du springer.
 - Efter passet frågar startsidan själv hur det kändes.
 
