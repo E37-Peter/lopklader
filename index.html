@@ -51,9 +51,10 @@
   .intro .logo .lane2{animation-delay:.15s}
   @keyframes laneDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
   .wm{font-family:var(--cond);font-style:italic;font-weight:800;font-size:24px;line-height:1;text-transform:uppercase}
-  .top-right{margin-left:auto;display:flex;gap:8px}
-  .icon-btn{width:36px;height:36px;border-radius:999px;border:0;background:color-mix(in srgb, var(--ink) 7%, transparent);display:grid;place-items:center;padding:0;transition:transform .15s var(--ease)}
-  .icon-btn svg{width:17px;height:17px}
+  .top-right{margin-left:auto;margin-right:-9px;display:flex;gap:0}
+  .icon-btn{width:40px;height:40px;border-radius:12px;border:0;background:none;color:var(--ink);display:grid;place-items:center;padding:0;transition:transform .15s var(--ease),background .2s}
+  .icon-btn:hover{background:color-mix(in srgb, var(--ink) 6%, transparent)}
+  .icon-btn svg{width:22px;height:22px;stroke-width:1.75}
   .icon-btn:active{transform:scale(.92)}
 
   /* Rad med ort och väder */
@@ -71,7 +72,7 @@
   .skip:empty{display:none}
 
   /* En enda notis */
-  .note{margin-top:14px}
+  .note{margin-top:24px}
   .note summary, .note .line{list-style:none;display:flex;align-items:flex-start;gap:10px;font-size:15.5px;line-height:1.38;cursor:pointer}
   .note summary::-webkit-details-marker{display:none}
   .note .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);margin-top:7px;flex:none}
@@ -85,7 +86,7 @@
   .note.enter{animation:rise .45s var(--ease) both}
 
   /* Flikar längst ner */
-  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:color-mix(in srgb, var(--paper) 92%, transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:0 var(--pad) env(safe-area-inset-bottom)}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:color-mix(in srgb, var(--paper) 78%, transparent);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid color-mix(in srgb, var(--line) 70%, transparent);padding:0 var(--pad) env(safe-area-inset-bottom)}
   #tabs{max-width:476px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:10px 0 12px}
   .pace{position:relative;flex:1;display:flex;background:color-mix(in srgb, var(--ink) 7%, transparent);border-radius:12px;padding:3px}
   .pace button{position:relative;z-index:1;flex:1 1 auto;border:0;background:none;padding:8px 7px;font-size:14px;font-weight:500;color:var(--muted);white-space:nowrap;transition:color .2s}
@@ -103,16 +104,28 @@
 
   .toast{margin:16px 0 0;text-align:center;font-size:15px;font-weight:500;min-height:1.4em}
   .toast.show{animation:rise .4s var(--ease)}
-  footer{margin-top:auto;padding-top:20px;color:var(--faint);font-size:13px;text-align:center}
+  footer{margin-top:auto;padding-top:24px;color:var(--faint);font-size:13px;text-align:left}
   footer a{color:inherit}
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   @keyframes swap{0%{opacity:.15;transform:translateY(5px)}100%{opacity:1;transform:none}}
 
   /* Kläderna utlagda */
-  .lay{position:relative;margin-top:18px;min-height:200px}
+  @media (min-width:860px){
+    .app{max-width:980px}
+    #before{display:grid;grid-template-columns:minmax(0, 5fr) minmax(0, 6fr);grid-template-rows:auto auto auto 1fr;column-gap:56px;align-items:start}
+    #before .poster{font-size:clamp(52px, 5.4vw, 68px) !important}
+    #before .poster{grid-column:1;grid-row:1}
+    #before .skip{grid-column:1;grid-row:2}
+    #before #noteSlot{grid-column:1;grid-row:3}
+    #before .lay{grid-column:2;grid-row:1 / span 4}
+    #tabs{max-width:560px}
+    #after{max-width:560px}
+  }
+  .welcome{font-size:16px;line-height:1.45;color:var(--muted);margin:16px 0 0;max-width:36ch}
+  .lay{position:relative;margin-top:24px;min-height:200px}
   .lay .it{position:absolute}
   .lay .it svg{display:block;overflow:visible}
-  .lay .lab{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:6px;width:max-content;max-width:var(--lw, 118px);text-align:center;line-height:1.2}
+  .lay .lab{position:absolute;left:0;top:100%;margin-top:8px;width:max-content;max-width:var(--lw, 118px);text-align:left;line-height:1.25}
     .lay .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
   .lay .lab b{display:block;font-size:14px;font-weight:600}
   .lay .lab span{display:block;font-size:12.5px;text-wrap:balance;color:var(--muted);margin-top:1px}
@@ -132,6 +145,12 @@
   .lay.windy [data-slot=neck] svg,.lay.windy [data-slot=head] svg{rotate:var(--wr);translate:var(--wt) 0}
   .lay.gusty [data-slot=neck] svg,.lay.gusty [data-slot=head] svg,.lay.gusty [data-slot=top] svg{animation:flutter .45s ease-in-out 4 alternate}
   @keyframes flutter{from{rotate:calc(var(--wr, 0deg) - 2deg)}to{rotate:calc(var(--wr, 0deg) + 2deg)}}
+  .lay.loading .it svg{filter:none;opacity:.1;animation:breathe 1.6s ease-in-out infinite alternate}
+  .lay.loading .lab{visibility:hidden}
+  body.loading #poster,body.loading #degree{opacity:.14;animation:breathe2 1.6s ease-in-out infinite alternate}
+  @keyframes breathe2{to{opacity:.24}}
+  #poster,#degree{transition:opacity .4s}
+  @keyframes breathe{to{opacity:.2}}
   .lay .it.in{animation:layIn .55s var(--ease) both;animation-delay:var(--d, 0ms)}
   @keyframes layIn{from{opacity:0;transform:translateY(-12px) rotate(-4deg) scale(1.05)}to{opacity:1;transform:none}}
   .lay.shiver .it{animation:shiver .09s linear 7}
@@ -339,6 +358,7 @@
   <div class="grabber"></div>
   <div class="dlg">
     <div class="dlg-head"><h2 id="placeTitle">Var springer du?</h2><button class="close" data-close aria-label="Stäng"><span data-ic="x"></span></button></div>
+    <p class="welcome" id="welcome" hidden>Löpkläder föreslår vad du ska ha på dig efter vädret där du springer. Säg efter passet om du frös eller blev för varm, så lär den sig hur du vill ha det.</p>
     <form id="searchForm" role="search" style="margin-top:12px">
       <label class="visually-hidden" for="q">Sök ort</label>
       <input class="search" id="q" type="search" placeholder="Sök ort, till exempel Umeå" autocomplete="off" enterkeyhint="search">
@@ -708,72 +728,60 @@
   }
 
   // ---------- Kläderna utlagda ----------
-  // Alla plagg ritas i centimeter, i samma skala, så att storlekarna stämmer mot varandra.
-  const INK = "fill:var(--cloth)", RED = "fill:var(--red)";
-  const seam = (d, o = .45) => `<path d="${d}" fill="none" stroke-width=".9" stroke-linecap="round" style="stroke:var(--seam);opacity:${o}"/>`;
-  const seamR = d => `<path d="${d}" fill="none" stroke-width="1.4" stroke-linecap="round" style="stroke:var(--red)"/>`;
-  const sep = "stroke:var(--paper);stroke-width:1.1;stroke-linejoin:round";
-  const outline = "fill:var(--paper);stroke:var(--cloth-line);stroke-width:1.3;stroke-linejoin:round";
-  const LONG_BODY = "M25 1 Q37 6 49 1 L62 6 L62 70 L12 70 L12 6 Z";
-  const LONG_L = "M12 6 L2 63 L11 66 L15 25 Z", LONG_R = "M62 6 L72 63 L63 66 L59 25 Z";
+  // Ritregel för alla plagg:
+  // 1. Mått i centimeter, verklig storlek, samma skala för allt.
+  // 2. Alla former ritas med samma rundning (fyllning plus kontur i samma färg, runda hörn).
+  // 3. Delar som ligger på varandra skiljs åt av ett lika brett mellanrum i bakgrundsfärg.
+  // 4. Högst två sorters detaljer per plagg, alltid samma sömtjocklek och ton.
+  // 5. Kläder i plaggfärg, tillbehör i rött. Ett rött inslag på ett mörkt plagg, aldrig fler.
+  // 6. Lager under ritas som kontur. Par ritas som en kopia 5 cm åt höger och 3 cm ned, bakom.
+  const C = "var(--cloth)", R = "var(--red)";
+  const GAP = "fill:var(--paper);stroke:var(--paper);stroke-width:3.2;stroke-linejoin:round";
+  const P = (d, c = C) => `<path d="${d}" style="${GAP}"/><path d="${d}" style="fill:${c};stroke:${c};stroke-width:1.4;stroke-linejoin:round"/>`;
+  const O = d => `<path d="${d}" style="${GAP}"/><path d="${d}" style="fill:var(--paper);stroke:var(--cloth-line);stroke-width:1.3;stroke-linejoin:round"/>`;
+  const S = (d, o = .42) => `<path d="${d}" fill="none" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--seam);opacity:${o}"/>`;
+  const ZIP = d => `<path d="${d}" fill="none" stroke-width="1.3" stroke-linecap="round" style="stroke:var(--red)"/>`;
+  const BODY = "M25 1.5 Q37 6 49 1.5 L61 6 V69 H13 V6 Z";
+  const SL = "M13 6 L3 62 H11 L15.5 24 Z", SR = "M61 6 L71 62 H63 L58.5 24 Z";
+  const NECK = S("M27 3 Q37 7.5 47 3", .5), CUFFS = S("M4.4 58 H11.4 M69.6 58 H62.6");
   const GARM = {
-    // överdelar, 74 cm breda med ärmarna utlagda längs kroppen
+    long:   {w:74, h:70, svg: () => P(SL) + P(SR) + P(BODY) + NECK + CUFFS},
+    base:   {w:74, h:70, svg: () => O(SL) + O(SR) + O(BODY)},
+    mid:    {w:74, h:70, svg: () => O(SL) + O(SR) + O(BODY) + `<path d="M37 4 V18" stroke-width="1.3" stroke-linecap="round" style="stroke:var(--cloth-line)"/>`},
     jacket: {w:74, h:80, t:10, svg: () => `<g transform="translate(0 10)">` +
-      `<path d="M22 8 Q18 -8 37 -11 Q56 -8 52 8 Z" style="${INK};${sep}"/>` + seam("M37 -10 V-1", .35) +
-      `<path d="${LONG_L}" style="${INK};${sep}"/><path d="${LONG_R}" style="${INK};${sep}"/><path d="${LONG_BODY}" style="${INK};${sep}"/>` +
-      seam("M25 1 Q37 7 49 1", .55) + seamR("M37 3 V69") +
-      seam("M17 47 H26 M48 47 H57") + seam("M2.6 58 L11.2 60.4 M2.2 61 L10.8 63.4 M71.4 58 L62.8 60.4 M71.8 61 L63.2 63.4") + seam("M12.5 66 H61.5", .35) + `</g>`},
-    gilet: {w:74, h:70, svg: () =>
-      `<path d="M25 1 Q37 6 49 1 L58 4 Q55 14 60 22 V70 H14 V22 Q19 14 16 4 Z" style="${INK}"/>` +
-      seamR("M37 4 V69") + seam("M25 1 Q37 6 49 1", .5) + seam("M18 50 H26 M48 50 H56", .35)},
-    long: {w:74, h:70, svg: () =>
-      `<path d="${LONG_L}" style="${INK};${sep}"/><path d="${LONG_R}" style="${INK};${sep}"/><path d="${LONG_BODY}" style="${INK};${sep}"/>` +
-      seam("M25 1 Q37 7 49 1", .6) + seam("M3 59 L11 61 M71 59 L63 61")},
-    // lager under jackan ritas som kontur
-    base: {w:74, h:70, svg: () => `<path d="${LONG_L}" style="${outline}"/><path d="${LONG_R}" style="${outline}"/><path d="${LONG_BODY}" style="${outline}"/>`},
-    mid:  {w:74, h:70, svg: () => `<path d="${LONG_L}" style="${outline}"/><path d="${LONG_R}" style="${outline}"/><path d="${LONG_BODY}" style="${outline}"/><path d="M37 3 V20" stroke-width="1.3" style="stroke:var(--cloth-line)"/>`},
-    tee: {w:74, h:66, svg: () =>
-      `<path d="M12 6 L1 20 L8 27 L14 22 Z" style="${INK};${sep}"/><path d="M62 6 L73 20 L66 27 L60 22 Z" style="${INK};${sep}"/>` +
-      `<path d="M25 1 Q37 6 49 1 L62 6 L62 66 L12 66 L12 6 Z" style="${INK};${sep}"/>` + seam("M25 1 Q37 7 49 1", .6)},
-    vest: {w:74, h:64, svg: () =>
-      `<path d="M22 0 H28 Q37 11 46 0 H52 V8 Q55 18 60 22 V64 H14 V22 Q19 18 22 8 Z" style="${INK}"/>` + seam("M28 1 Q37 12 46 1", .6)},
-    // ben
-    tights: {w:38, h:100, svg: () => `<path d="M1 0 H37 L34 100 H23 L20 32 Q19 30 18 32 L15 100 H4 Z" style="${INK}"/>` + seam("M1.4 4 H36.6")},
-    winter: {w:38, h:100, svg: () => `<path d="M1 0 H37 L34 100 H23 L20 32 Q19 30 18 32 L15 100 H4 Z" style="${INK}"/>` + seam("M1.4 4 H36.6 M1.6 7 H36.4") + seam("M6.5 14 L9 97 M31.5 14 L29 97", .3)},
-    tq: {w:38, h:70, svg: () => `<path d="M1 0 H37 L35 70 H22 L20 32 Q19 30 18 32 L16 70 H3 Z" style="${INK}"/>` + seam("M1.4 4 H36.6")},
-    shorts: {w:38, h:30, svg: () => `<path d="M2 0 H36 L38 30 H21 L19 17 L17 30 H0 Z" style="${INK}"/>` + seam("M2.3 4 H35.7")},
-    short: {w:38, h:22, svg: () => `<path d="M2 0 H36 L38 22 H21 L19 14 L17 22 H0 Z" style="${INK}"/>` + seam("M2.3 4 H35.7")},
-    // huvud och hals
-    hat: {w:22, h:25, svg: () => `<circle cx="11" cy="3.2" r="3.2" style="${RED}"/><path d="M2 17 Q2 5 11 5 Q20 5 20 17 Z" style="${RED}"/><rect x="1" y="16" width="20" height="8.5" rx="1.6" style="${RED};${sep}"/>` + seam("M5 17.5 V23 M9 17.5 V23 M13 17.5 V23 M17 17.5 V23", .35)},
-    band: {w:24, h:8, svg: () => `<rect x="0" y="0" width="24" height="7.5" rx="3.75" style="${RED}"/>` + seam("M3 3.75 H21", .35)},
-    cap: {w:28, h:14, svg: () => `<path d="M2 13 Q2 2 11 2 Q20 2 20 13 Z" style="${RED}"/><path d="M18 10 Q25 9 28 13.5 H18 Z" style="${RED}"/><circle cx="11" cy="2" r="1.4" style="${RED}"/>` + seam("M11 3 Q8 7 8 13 M11 3 Q14 7 14 13", .35)},
-    bala: {w:22, h:32, svg: () => `<path d="M11 0 Q22 0 22 12 V26 Q22 32 16 32 H6 Q0 32 0 26 V12 Q0 0 11 0 Z" style="${RED}"/><rect x="5" y="9" width="12" height="7" rx="3.5" style="fill:var(--paper)"/>`},
-    // solglasögon (ca 15 cm breda) och en tub solskydd
-    glasses: {w:15, h:6.5, svg: () => `<g style="${RED}"><path d="M.3 .6 H6.6 Q7.1 .6 7 1.6 L6.6 4.4 Q6.3 6.3 4.4 6.3 H2.3 Q.8 6.3 .6 4.6 L.1 1.4 Q0 .6 .3 .6 Z"/><path d="M14.7 .6 H8.4 Q7.9 .6 8 1.6 L8.4 4.4 Q8.7 6.3 10.6 6.3 H12.7 Q14.2 6.3 14.4 4.6 L14.9 1.4 Q15 .6 14.7 .6 Z"/></g><path d="M6.8 1.6 Q7.5 .8 8.2 1.6 M0 .9 H15" fill="none" stroke-width=".9" style="stroke:var(--red)"/>` + seam("M1.6 1.9 L1.3 3.6 M9.6 1.9 L9.3 3.6", .5)},
-    tube: {w:6, h:17, svg: () => `<rect x="1.6" y="0" width="2.8" height="3" rx=".6" style="${RED}"/><path d="M.6 3.4 H5.4 L5.8 15.6 Q5.8 17 4.6 17 H1.4 Q.2 17 .2 15.6 Z" style="${RED};${sep}"/>` + seam("M1.4 8 H4.6 M1.4 11 H4.6", .45)},
-    buff: {w:22, h:24, svg: () => `<path d="M0 2 Q11 5 22 2 V22 Q11 25 0 22 Z" style="${RED}"/>` + seam("M0.5 7 Q11 10 21.5 7 M0.5 17 Q11 20 21.5 17", .35)},
+      P("M23.5 7 Q20 -9 37 -10.5 Q54 -9 50.5 7 Z") + P(SL) + P(SR) + P(BODY) +
+      ZIP("M37 4.5 V68") + S("M18 46 H25 M49 46 H56") + `</g>`},
+    gilet:  {w:74, h:70, svg: () => P("M25 1.5 Q37 6 49 1.5 L57 4 Q55 15 60 22 V69 H14 V22 Q19 15 17 4 Z") + ZIP("M37 4.5 V68") + S("M19 48 H26 M48 48 H55")},
+    tee:    {w:74, h:66, svg: () => P("M13 6 L2 19 L8.5 25.5 L14 21 Z") + P("M61 6 L72 19 L65.5 25.5 L60 21 Z") + P("M25 1.5 Q37 6 49 1.5 L61 6 V65 H13 V6 Z") + NECK},
+    vest:   {w:74, h:64, svg: () => P("M22 .5 H27.5 Q37 11 46.5 .5 H52 V8 Q54.5 17 60 21 V63 H14 V21 Q19.5 17 22 8 Z") + S("M28 2.2 Q37 12 46 2.2", .5)},
+    tights: {w:38, h:100, svg: () => P("M1.5 .5 H36.5 L34 99 H23.5 L19.8 31 Q19 29.6 18.2 31 L14.5 99 H4 Z") + S("M2.2 4.5 H35.8")},
+    winter: {w:38, h:100, svg: () => P("M1.5 .5 H36.5 L34 99 H23.5 L19.8 31 Q19 29.6 18.2 31 L14.5 99 H4 Z") + S("M2.2 4.5 H35.8") + S("M7 12 L9 95 M31 12 L29 95", .3)},
+    tq:     {w:38, h:70, svg: () => P("M1.5 .5 H36.5 L35 69 H22.5 L19.8 31 Q19 29.6 18.2 31 L15.5 69 H3 Z") + S("M2.2 4.5 H35.8")},
+    shorts: {w:38, h:30, svg: () => P("M2 .5 H36 L37.5 29 H21.5 L19 16.5 L16.5 29 H.5 Z") + S("M2.6 4.5 H35.4")},
+    short:  {w:38, h:22, svg: () => P("M2 .5 H36 L37.5 21 H21.5 L19 13.5 L16.5 21 H.5 Z") + S("M2.6 4.5 H35.4")},
+    hat:    {w:22, h:25, svg: () => P("M8 3.4 A3 3 0 1 1 14 3.4 A3 3 0 1 1 8 3.4 Z", R) + P("M2.5 17 Q2.5 6 11 6 Q19.5 6 19.5 17 Z", R) + P("M1.5 16.5 H20.5 V24 H1.5 Z", R) + S("M6 18.5 V22 M11 18.5 V22 M16 18.5 V22")},
+    band:   {w:24, h:8,  svg: () => P("M3.6 .9 H20.4 A2.9 2.9 0 0 1 20.4 6.7 H3.6 A2.9 2.9 0 0 1 3.6 .9 Z", R) + S("M4.5 3.8 H19.5")},
+    cap:    {w:28, h:14, svg: () => P("M2.5 12.5 Q2.5 2.5 11 2.5 Q19.5 2.5 19.5 12.5 Z", R) + P("M18.5 10 Q25 9.5 27.5 13 H18.5 Z", R) + S("M11 3.4 Q8.6 7 8.4 11.6")},
+    bala:   {w:22, h:32, svg: () => P("M11 .5 Q21.5 .5 21.5 12 V26 Q21.5 31.5 16 31.5 H6 Q.5 31.5 .5 26 V12 Q.5 .5 11 .5 Z", R) + `<path d="M6.6 9 H15.4 A3.2 3.2 0 0 1 15.4 15.4 H6.6 A3.2 3.2 0 0 1 6.6 9 Z" style="fill:var(--paper)"/>`},
+    buff:   {w:22, h:24, svg: () => P("M.5 2 Q11 5 21.5 2 V22 Q11 25 .5 22 Z", R) + S("M1.2 12 Q11 15 20.8 12")},
+    glasses:{w:15, h:7,  svg: () => P("M.8 1.2 H6.4 L6.1 4.4 Q5.8 6 4.4 6 H2.4 Q1 6 .9 4.6 Z", R) + P("M14.2 1.2 H8.6 L8.9 4.4 Q9.2 6 10.6 6 H12.6 Q14 6 14.1 4.6 Z", R) + ZIP("M.4 .9 H14.6") + S("M2.2 2.4 L2 3.8 M9.8 2.4 L9.6 3.8", .6)},
+    tube:   {w:6,  h:17, svg: () => P("M2 .6 H4 V2.8 H2 Z", R) + P("M.9 3.8 H5.1 L5.4 16 H.6 Z", R) + S("M1.6 8.5 H4.4")},
   };
-  // Handskar och vantar, ett par. Den bakre är spegelvänd och förskjuten.
-  function gloveSVG(thin){
-    const f = thin ? 1.7 : 2.1;
-    const fing = [[1.4,5,f],[3.6,2,f],[5.8,1.5,f],[8,3.5,f]].map(([x,y,w]) => `<rect x="${x}" y="${y}" width="${w}" height="${12 - y + 2}" rx="${w/2}"/>`).join("");
-    return `<g style="${RED}">${fing}<rect x="1.2" y="10" width="9.2" height="11" rx="2.4"/><rect x="-1.5" y="11" width="${f + .3}" height="8" rx="1.1" transform="rotate(-28 0 15)"/><rect x="1.4" y="19.5" width="8.8" height="4.5" rx="1"/></g>`;
-  }
-  function mittSVG(){
-    return `<g style="${RED}"><path d="M2 21 V8 Q2 1 7 1 Q12 1 12 8 V21 Z"/><path d="M2.6 15 Q-1.8 13 -.8 8.5 Q0 6.6 2.6 9 Z"/><rect x="1.6" y="19.5" width="11" height="5" rx="1"/></g>`;
-  }
+  // Par: en kopia förskjuten 5 cm åt höger och 3 cm ned, bakom
+  const pair = (one, w, h) => ({w: w + 5, h: h + 3, svg: () => `<g transform="translate(5 3)">${one}</g>${one}`});
   function handsItem(kind){
-    const thick = kind === "thick", m = kind === "mitts" || thick;
-    const one = m ? mittSVG() : gloveSVG(kind === "thin");
-    const s = thick ? 1.15 : 1, w = (m ? 13 : 11) * s;
-    const pair = `<g transform="translate(${w + 2.5} 2) scale(-1 1) translate(${-w} 0) scale(${s})">${one}</g><g transform="translate(1.5 0) scale(${s})">${one}</g>`;
-    return {w: 2 * w + 5, h: 25 * s + 2, svg: () => pair};
+    const s = kind === "thick" ? 1.15 : 1;
+    const glove = P("M1 21 V5.2 A1.2 1.2 0 0 1 3.4 5.2 V2.7 A1.2 1.2 0 0 1 5.8 2.7 V2.4 A1.2 1.2 0 0 1 8.2 2.4 V4.2 A1.2 1.2 0 0 1 10.6 4.2 V21 Z", R) +
+      P("M1 12.5 L-1.6 9.6 A1.15 1.15 0 0 0 -3.2 11.2 L1 17.5 Z", R) + S("M3.4 6 V10 M5.8 3.6 V10 M8.2 5.2 V10 M1.4 18.4 H10.2");
+    const mitt = P("M1.5 21 V8 A5 5 0 0 1 11.5 8 V21 Z", R) + P("M1.5 13 L-1.4 9.8 A1.3 1.3 0 0 0 -3.1 11.6 L1.5 18 Z", R) + S("M1.9 18.4 H11.1");
+    const one = `<g transform="translate(3.6 .4) scale(${s})">${kind === "mitts" || kind === "thick" ? mitt : glove}</g>`;
+    return pair(one, 15 * s, 22.5 * s);
   }
   function socksItem(kind){
     const L = {low:5, ankle:11, wool:15, knee:34}[kind], lw = kind === "wool" ? 10 : 9;
-    const sock = `<path d="M0 0 H${lw} V${L} Q${lw} ${L+1.6} ${lw+2} ${L+2.2} L20 ${L+3.4} Q24.6 ${L+4.2} 24.2 ${L+7.6} Q23.8 ${L+10.8} 19.6 ${L+10.4} L6.5 ${L+9.4} Q0 ${L+9} 0 ${L+3} Z" style="${INK};${sep}"/>` + seam(`M20.5 ${L+3.6} Q19 ${L+7} 20 ${L+10.3}`, .35);
-    const rib = seam(`M.6 3 H${lw - .6}`);
-    return {w: 31, h: L + 15, svg: () => `<g transform="translate(6.5 3.5)">${sock}${rib}</g>${sock}${rib}`};
+    const one = P(`M.5 .5 H${lw - .5} V${L} Q${lw - .5} ${L + 1.8} ${lw + 1.8} ${L + 2.3} L20 ${L + 3.4} Q24 ${L + 4.2} 23.7 ${L + 7.4} Q23.4 ${L + 10.2} 19.8 ${L + 9.9} L6.5 ${L + 9} Q.5 ${L + 8.6} .5 ${L + 3} Z`) +
+      S(`M1.3 3.4 H${lw - 1.3} M20.4 ${L + 4} Q19.2 ${L + 6.8} 20 ${L + 9.4}`);
+    return pair(one, 25, L + 11);
   }
 
   // Klädförslaget som en lista med plagg att rita
@@ -857,27 +865,28 @@
     const stack = legs.s.h < 50 && acc.length <= 2;
     const colB = stack ? [legs, ...acc] : [legs];
     const wB = Math.max(...colB.map(i => i.s.w)) * SC;
-    const hB = colB.reduce((a, i) => a + hOf(i), 0) + 12 * (colB.length - 1);
+    const hB = colB.reduce((a, i) => a + hOf(i), 0) + 16 * (colB.length - 1);
     const w1 = top.s.w * SC + GAP * 1.6 + wB;
-    const x1 = Math.max(0, (W - w1) / 2), xB = x1 + top.s.w * SC + GAP * 1.6;
+    // överdelen mot vänsterkanten (samma kant som affischen), benen mot högerkanten
+    const x1 = 0, xB = Math.max(top.s.w * SC + GAP * 1.6, W - wB);
     // rad 1: överdel och ben bredvid varandra
     const hA = hOf(top), h1 = Math.max(hA, hB);
     // överkanterna i linje, utom när byxorna har tillbehör under sig: då mittlinjerna
     pos.push({it: top, x: x1, y: stack ? (h1 - hA) / 2 : 0, lw: 200});
     let y = stack ? (h1 - hB) / 2 : 0;
-    colB.forEach(it => { pos.push({it, x: xB + (wB - it.s.w * SC) / 2, y, lw: 130}); y += hOf(it) + 12; });
+    colB.forEach(it => { pos.push({it, x: xB, y, lw: 130}); y += hOf(it) + 16; });
     // rad 2: tillbehören, nederkanten i linje så att etiketterna hamnar på rad
     // högst fyra per rad; fem eller sex delas jämnt på två rader
     const rest = stack ? [] : acc.slice();
     const per = rest.length > 4 ? Math.ceil(rest.length / 2) : 4;
-    let yr = h1 + 16;
+    let yr = h1 + 24;
     while(rest.length){
       const row = rest.splice(0, per);
-      const slot = Math.min(W / row.length, 104);
-      const x2 = (W - slot * row.length) / 2;
+      // fast rutnät: fyra kolumner (tre när raden delas), allt vänsterställt
+      const slot = W / Math.min(per, 4), x2 = 0;
       const accH = Math.max(...row.map(i => i.s.h)) * SC;
-      row.forEach((it, n) => pos.push({it, lw: Math.floor(slot - 4), x: x2 + slot * n + (slot - it.s.w * SC) / 2, y: yr + accH - it.s.h * SC}));
-      yr += accH + Math.max(...row.map(lblH)) + 18;
+      row.forEach((it, n) => pos.push({it, lw: Math.floor(slot - 8), x: x2 + slot * n, y: yr + accH - it.s.h * SC}));
+      yr += accH + Math.max(...row.map(lblH)) + 24;
     }
     const off = 0;
     const H = Math.max(...pos.map(p => p.y + hOf(p.it)));
@@ -1029,7 +1038,12 @@
     if(o.skin) rows.push(["Hud", o.skin.replace(/,.*/, "")]);
     const skip = [!o.head && "huvudet", !o.hands && "händerna"].filter(Boolean);
     $("skip").textContent = skip.length ? "Inget behövs på " + skip.join(" eller ") + "." : "";
-    if(hours.length || !place || weatherFailed){ renderLay(o); applyFx(); }
+    const ready = hours.length || !place || weatherFailed;
+    $("lay").classList.toggle("loading", !ready);
+    document.body.classList.toggle("loading", !ready);
+    $("lay").setAttribute("aria-busy", String(!ready));
+    if(ready){ renderLay(o); applyFx(); }
+    else if(!layKeys){ renderLay(o, true); layKeys = null; layLast = ""; }
     // Raden med ort och väder
     const h = hours[selected];
     const when = h ? (selected === 0 ? "nu" : kl(h.label)) : null;
@@ -1049,6 +1063,11 @@
   let lastNote = "";
   function renderNote(){
     if(afterMode) return;
+    if(weatherFailed && !hours.length){
+      lastNote = "";
+      $("noteSlot").innerHTML = `<div class="note warn"><div class="line"><span class="dot"></span><span><b>Ingen prognos.</b> Förslaget bygger på vädret du har ställt in.</span><button class="act" type="button" id="retry">Försök igen</button></div></div>`;
+      return;
+    }
     const r = computeFor(current());
     const b = selected === 0 ? bestTime() : null;
     const al = hours.length ? weatherAlerts(selected).filter(a => !(b && a.good && a.ico === "partly")) : [];
@@ -1064,7 +1083,7 @@
       : `<div class="note ${cls}${isNew ? " enter" : ""}"><div class="line"><span class="dot"></span><span>${text}</span>${act}</div></div>`;
   }
   const renderStatus = renderNote;
-  $("noteSlot").addEventListener("click", e => { const b = e.target.closest("[data-hour]"); if(b){ e.preventDefault(); applyHour(+b.dataset.hour); } });
+  $("noteSlot").addEventListener("click", e => { if(e.target.closest("#retry")){ const p = place || getJSON(KEY + ".place"); if(p) getWeather(p.lat, p.lon, p.name); else openDlg("placeDlg"); return; } const b = e.target.closest("[data-hour]"); if(b){ e.preventDefault(); applyHour(+b.dataset.hour); } });
 
   // Flikar: typ av pass, och läget efter passet
   function renderTabs(){
@@ -1520,7 +1539,7 @@
       hoursAll = buildHours(j);
       hours = hoursAll.slice(0, 13);
       if(!hours.length) throw new Error("tom prognos");
-      place = {lat, lon, name}; fetchedAt = Date.now();
+      place = {lat, lon, name}; fetchedAt = Date.now(); weatherFailed = false;
       setJSON(KEY + ".place", place);
       $("updated").textContent = "Prognos för " + name + ", uppdaterad " + hhmm(Date.now()) + ".";
       closeDlg($("placeDlg"));
@@ -1528,7 +1547,7 @@
       applyHour(afterMode ? selected : 0);
     }catch(e){
       weatherFailed = true;
-      render();
+      render(); renderNote();
       $("err").textContent = "Prognosen gick inte att hämta. Kontrollera att du är uppkopplad och försök igen, eller ändra vädret själv.";
       if(!afterMode) openDlg("placeDlg");
     }
@@ -1583,6 +1602,8 @@
     }catch(err){ $("err").textContent = "Sökningen gick inte att göra. Kontrollera att du är uppkopplad."; }
   });
 
+  // tillbaka på nätet: hämta igen om det inte gick förra gången
+  addEventListener("online", () => { if(weatherFailed && place) getWeather(place.lat, place.lon, place.name); });
   setInterval(() => { if(hours.length && !afterMode){ renderStatus(); render(); } }, 5 * 60 * 1000);
   document.addEventListener("visibilitychange", () => {
     if(document.visibilityState === "visible" && place && Date.now() - fetchedAt > 20*60*1000) getWeather(place.lat, place.lon, place.name);
@@ -1601,7 +1622,7 @@
   if(planDue()) setMode(true);
   else render();
   if(place) getWeather(place.lat, place.lon, place.name);
-  else openDlg("placeDlg");
+  else { $("welcome").hidden = false; openDlg("placeDlg"); }
 
   if("serviceWorker" in navigator && location.protocol === "https:"){
     navigator.serviceWorker.register("sw.js").catch(() => {});
