@@ -19,7 +19,7 @@
 <style>
   /* Affisch: ljust som A, asfaltssvart kväll som B */
   :root{
-    --paper:#F3F3F1; --surface:#FFFFFF; --ink:#161616; --muted:#77736F; --faint:#A29E99; --line:#DCDAD6;
+    --paper:#F3F3F1; --surface:#FFFFFF; --ink:#161616; --cloth:#161616; --cloth-line:#161616; --seam:#F3F3F1; --muted:#77736F; --faint:#A29E99; --line:#DCDAD6;
     --red:#D13A26; --red-text:#D13A26; --hair:rgba(209,58,38,.45);
     --warn:#E5A100; --warn-bg:#FFF4D6; --good:#2F7D4F; --good-bg:#E5F2E9;
     --rain:#7FA7D9; --night:#2E2A33; --best:#FFE7A3;
@@ -29,7 +29,7 @@
     color-scheme:light;
   }
   @media (prefers-color-scheme: dark){
-    :root{ --paper:#121212; --surface:#1E1D1C; --ink:#F2EFEA; --muted:#9A948F; --faint:#6A6561; --line:#2E2C2A;
+    :root{ --paper:#121212; --surface:#1E1D1C; --ink:#F2EFEA; --cloth:#5A5551; --cloth-line:#A8A29C; --seam:#C9C3BC; --muted:#9A948F; --faint:#6A6561; --line:#2E2C2A;
       --red-text:#FF5A3C; --hair:rgba(209,58,38,.6); --warn-bg:#33290F; --good:#7CC796; --good-bg:#17291E;
       --night:#000; --best:#4A3D12; color-scheme:dark; }
   }
@@ -105,7 +105,8 @@
   .lay .it{position:absolute}
   .lay .it svg{display:block;overflow:visible}
   .lay .lab{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:6px;width:max-content;max-width:var(--lw, 118px);text-align:center;line-height:1.2}
-    .lay .lab b{display:block;font-size:14px;font-weight:600}
+    .lay .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .lay .lab b{display:block;font-size:14px;font-weight:600}
   .lay .lab span{display:block;font-size:12.5px;text-wrap:balance;color:var(--muted);margin-top:1px}
   .lay .it.in{animation:layIn .55s var(--ease) both;animation-delay:var(--d, 0ms)}
   @keyframes layIn{from{opacity:0;transform:translateY(-12px) rotate(-4deg) scale(1.05)}to{opacity:1;transform:none}}
@@ -608,7 +609,7 @@
   }
   // Korta namn för meningen överst och för "Du hade på dig"
   function shortTop(d){
-    return d >= 20 ? "linne" : d >= 9 ? "t-shirt" : d >= 5 ? "långärmat" : d >= 0 ? "tunn jacka" : d >= -6 ? "vindjacka" : d >= -12 ? "varma lager" : "allt varmt du har";
+    return d >= 20 ? "linne" : d >= 9 ? "t-shirt" : d >= 5 ? "långärmat" : d >= 0 ? "väst" : d >= -6 ? "vindjacka" : d >= -12 ? "varma lager" : "allt varmt du har";
   }
   function shortHands(s){
     if(!s) return null;
@@ -658,28 +659,29 @@
 
   // ---------- Kläderna utlagda ----------
   // Alla plagg ritas i centimeter, i samma skala, så att storlekarna stämmer mot varandra.
-  const INK = "fill:var(--ink)", RED = "fill:var(--red)";
-  const seam = (d, o = .45) => `<path d="${d}" fill="none" stroke-width=".9" stroke-linecap="round" style="stroke:var(--paper);opacity:${o}"/>`;
+  const INK = "fill:var(--cloth)", RED = "fill:var(--red)";
+  const seam = (d, o = .45) => `<path d="${d}" fill="none" stroke-width=".9" stroke-linecap="round" style="stroke:var(--seam);opacity:${o}"/>`;
   const seamR = d => `<path d="${d}" fill="none" stroke-width="1.4" stroke-linecap="round" style="stroke:var(--red)"/>`;
   const sep = "stroke:var(--paper);stroke-width:1.1;stroke-linejoin:round";
-  const outline = "fill:var(--paper);stroke:var(--ink);stroke-width:1.3;stroke-linejoin:round";
+  const outline = "fill:var(--paper);stroke:var(--cloth-line);stroke-width:1.3;stroke-linejoin:round";
   const LONG_BODY = "M25 1 Q37 6 49 1 L62 6 L62 70 L12 70 L12 6 Z";
   const LONG_L = "M12 6 L2 63 L11 66 L15 25 Z", LONG_R = "M62 6 L72 63 L63 66 L59 25 Z";
   const GARM = {
     // överdelar, 74 cm breda med ärmarna utlagda längs kroppen
-    jacket: {w:74, h:70, svg: () =>
+    jacket: {w:74, h:80, t:10, svg: () => `<g transform="translate(0 10)">` +
+      `<path d="M22 8 Q18 -8 37 -11 Q56 -8 52 8 Z" style="${INK};${sep}"/>` + seam("M37 -10 V-1", .35) +
       `<path d="${LONG_L}" style="${INK};${sep}"/><path d="${LONG_R}" style="${INK};${sep}"/><path d="${LONG_BODY}" style="${INK};${sep}"/>` +
-      `<rect x="28" y="-1.5" width="18" height="5" rx="1.5" style="${INK}"/>` + seamR("M37 2 V69") +
-      seam("M17 47 H26 M48 47 H57") + seam("M3 59 L11 61 M71 59 L63 61")},
-    thinjacket: {w:74, h:70, svg: () =>
-      `<path d="${LONG_L}" style="${INK};${sep}"/><path d="${LONG_R}" style="${INK};${sep}"/><path d="${LONG_BODY}" style="${INK};${sep}"/>` +
-      seamR("M37 4 V69") + seam("M25 1 Q37 6 49 1")},
+      seam("M25 1 Q37 7 49 1", .55) + seamR("M37 3 V69") +
+      seam("M17 47 H26 M48 47 H57") + seam("M2.6 58 L11.2 60.4 M2.2 61 L10.8 63.4 M71.4 58 L62.8 60.4 M71.8 61 L63.2 63.4") + seam("M12.5 66 H61.5", .35) + `</g>`},
+    gilet: {w:74, h:70, svg: () =>
+      `<path d="M25 1 Q37 6 49 1 L58 4 Q55 14 60 22 V70 H14 V22 Q19 14 16 4 Z" style="${INK}"/>` +
+      seamR("M37 4 V69") + seam("M25 1 Q37 6 49 1", .5) + seam("M18 50 H26 M48 50 H56", .35)},
     long: {w:74, h:70, svg: () =>
       `<path d="${LONG_L}" style="${INK};${sep}"/><path d="${LONG_R}" style="${INK};${sep}"/><path d="${LONG_BODY}" style="${INK};${sep}"/>` +
       seam("M25 1 Q37 7 49 1", .6) + seam("M3 59 L11 61 M71 59 L63 61")},
     // lager under jackan ritas som kontur
     base: {w:74, h:70, svg: () => `<path d="${LONG_L}" style="${outline}"/><path d="${LONG_R}" style="${outline}"/><path d="${LONG_BODY}" style="${outline}"/>`},
-    mid:  {w:74, h:70, svg: () => `<path d="${LONG_L}" style="${outline}"/><path d="${LONG_R}" style="${outline}"/><path d="${LONG_BODY}" style="${outline}"/><path d="M37 3 V20" stroke-width="1.3" style="stroke:var(--ink)"/>`},
+    mid:  {w:74, h:70, svg: () => `<path d="${LONG_L}" style="${outline}"/><path d="${LONG_R}" style="${outline}"/><path d="${LONG_BODY}" style="${outline}"/><path d="M37 3 V20" stroke-width="1.3" style="stroke:var(--cloth-line)"/>`},
     tee: {w:74, h:66, svg: () =>
       `<path d="M12 6 L1 20 L8 27 L14 22 Z" style="${INK};${sep}"/><path d="M62 6 L73 20 L66 27 L60 22 Z" style="${INK};${sep}"/>` +
       `<path d="M25 1 Q37 6 49 1 L62 6 L62 66 L12 66 L12 6 Z" style="${INK};${sep}"/>` + seam("M25 1 Q37 7 49 1", .6)},
@@ -687,7 +689,7 @@
       `<path d="M22 0 H28 Q37 11 46 0 H52 V8 Q55 18 60 22 V64 H14 V22 Q19 18 22 8 Z" style="${INK}"/>` + seam("M28 1 Q37 12 46 1", .6)},
     // ben
     tights: {w:38, h:100, svg: () => `<path d="M1 0 H37 L34 100 H23 L20 32 Q19 30 18 32 L15 100 H4 Z" style="${INK}"/>` + seam("M1.4 4 H36.6")},
-    winter: {w:38, h:100, svg: () => `<path d="M1 0 H37 L34 100 H23 L20 32 Q19 30 18 32 L15 100 H4 Z" style="${INK}"/>` + seam("M1.4 4 H36.6 M1.6 7 H36.4") + seam("M5 40 Q9 44 15 40 M23 40 Q29 44 33 40", .3)},
+    winter: {w:38, h:100, svg: () => `<path d="M1 0 H37 L34 100 H23 L20 32 Q19 30 18 32 L15 100 H4 Z" style="${INK}"/>` + seam("M1.4 4 H36.6 M1.6 7 H36.4") + seam("M6.5 14 L9 97 M31.5 14 L29 97", .3)},
     tq: {w:38, h:70, svg: () => `<path d="M1 0 H37 L35 70 H22 L20 32 Q19 30 18 32 L16 70 H3 Z" style="${INK}"/>` + seam("M1.4 4 H36.6")},
     shorts: {w:38, h:30, svg: () => `<path d="M2 0 H36 L38 30 H21 L19 17 L17 30 H0 Z" style="${INK}"/>` + seam("M2.3 4 H35.7")},
     short: {w:38, h:22, svg: () => `<path d="M2 0 H36 L38 22 H21 L19 14 L17 22 H0 Z" style="${INK}"/>` + seam("M2.3 4 H35.7")},
@@ -734,8 +736,8 @@
     else if(/^t-shirt/.test(t)) top = {layers:["tee"], label:"T-shirt", sub: /långärmad/.test(t) ? "eller tunn långärmad" : ""};
     else if(/mellanlager/.test(t)) top = {layers:["base","mid","jacket"], label:"Vindjacka", sub:"över " + (/varmt/.test(t) ? "varmt " : "") + "mellanlager och ullunderställ"};
     else if(/underställ/.test(t)) top = {layers:["base","jacket"], label:"Vindjacka", sub:"över underställ"};
-    else if(/löparjacka eller väst/.test(t)) top = {layers:["base","thinjacket"], label:"Tunn jacka", sub:"eller väst, över långärmat"};
-    else if(/långärmad/.test(t)) top = {layers:["long"], label:"Långärmat", sub:"funktionströja"};
+    else if(/löparjacka eller väst/.test(t)) top = {layers:["base","gilet"], label:"Väst", sub:"eller tunn jacka, över långärmat"};
+    else if(/långärmad/.test(t)) top = {layers:["long"], label:"Långärmat", sub:""};
     else top = {layers:["long"], label:o.top, sub:""};
     out.push(Object.assign({slot:"top"}, top));
     const l = o.legs.toLowerCase();
@@ -767,9 +769,10 @@
   function shapeOf(it){
     if(it.slot === "top"){
       const n = it.layers.length, dx = 5, dy = 4;
-      const base = GARM[it.layers[n - 1]];
-      const svg = it.layers.map((k, i) => { const j = n - 1 - i; return `<g transform="translate(${dx * j} ${dy * (n - 1 - j)})">${GARM[k].svg()}</g>`; }).join("");
-      return {w: base.w + dx * (n - 1), h: Math.max(...it.layers.map(k => GARM[k].h)) + dy * (n - 1), svg, cx: base.w / 2, pad: 2};
+      const L = it.layers.map(k => GARM[k]), T = Math.max(...L.map(g => g.t || 0));
+      const base = L[n - 1];
+      const svg = L.map((g, i) => { const j = n - 1 - i; return `<g transform="translate(${dx * j} ${dy * (n - 1 - j) + T - (g.t || 0)})">${g.svg()}</g>`; }).join("");
+      return {w: base.w + dx * (n - 1), h: Math.max(...L.map(g => g.h + T - (g.t || 0))) + dy * (n - 1), svg, pad: 2};
     }
     const s = it.slot === "hands" ? handsItem(it.kind) : it.slot === "feet" ? socksItem(it.kind) : GARM[it.kind];
     return {w: s.w, h: s.h, svg: s.svg(), cx: s.w / 2, pad: 2};
@@ -780,30 +783,44 @@
   function renderLay(o, force){
     const el = $("lay");
     const items = layItems(o);
-    const sig = items.map(i => i.key + i.label + i.sub).join("|") + el.clientWidth;
+    const sig = items.map(i => i.key + i.label + i.sub).join("|") + el.clientWidth + $("poster").textContent;
     if(sig === layLast && !force) return;
     layLast = sig;
     const W = el.clientWidth || 342;
     // en skala för allt, satt så att den bredaste raden får plats
     const SC = Math.min(2.5, W / 136), GAP = 10 * SC;
     const by = Object.fromEntries(items.map(i => [i.slot, Object.assign(i, {s: shapeOf(i)})]));
-    const lblH = it => it.sub ? (it.slot === "top" || it.sub.length < 20 ? 40 : 56) : 24;
+    // det som redan står i affischen får inget namn, bara en undertext om den säger något mer
+    const said = $("poster").textContent.toLowerCase();
+    items.forEach(i => { i.named = !said.includes(i.label.toLowerCase()); });
+    const lblH = it => (it.named ? 19 : 0) + (it.sub ? (it.sub.length > 22 ? 32 : 16) : 0) + (it.named || it.sub ? 8 : 0);
+    const hOf = it => it.s.h * SC + lblH(it);
     const pos = [];
-    // rad 1: överdel och ben bredvid varandra, centrerade
     const top = by.top, legs = by.legs;
-    const w1 = (top.s.w + legs.s.w) * SC + GAP * 1.6;
-    const x1 = Math.max(0, (W - w1) / 2);
-    pos.push({it: top, x: x1, y: 0, lw: 200});
-    pos.push({it: legs, x: x1 + top.s.w * SC + GAP * 1.6, y: 0, lw: 124});
-    const row1 = Math.max(top.s.h * SC + lblH(top), legs.s.h * SC + lblH(legs));
-    // rad 2: tillbehören, nederkanten i linje så att etiketterna hamnar på rad
     const acc = ["head","neck","hands","feet"].map(k => by[k]).filter(Boolean);
-    const slot = Math.min(W / acc.length, 104);
-    const x2 = (W - slot * acc.length) / 2;
-    const accH = Math.max(...acc.map(i => i.s.h)) * SC;
-    acc.forEach((it, n) => pos.push({it, lw: Math.floor(slot - 4), x: x2 + slot * n + (slot - it.s.w * SC) / 2, y: row1 + 14 + accH - it.s.h * SC}));
+    // få plagg och korta byxor: tillbehören läggs under byxorna i stället för på en egen rad
+    const stack = legs.s.h < 50 && acc.length <= 2;
+    const colB = stack ? [legs, ...acc] : [legs];
+    const wB = Math.max(...colB.map(i => i.s.w)) * SC;
+    const hB = colB.reduce((a, i) => a + hOf(i), 0) + 12 * (colB.length - 1);
+    const w1 = top.s.w * SC + GAP * 1.6 + wB;
+    const x1 = Math.max(0, (W - w1) / 2), xB = x1 + top.s.w * SC + GAP * 1.6;
+    // rad 1: överdel och ben bredvid varandra
+    const hA = hOf(top), h1 = Math.max(hA, hB);
+    // överkanterna i linje, utom när byxorna har tillbehör under sig: då mittlinjerna
+    pos.push({it: top, x: x1, y: stack ? (h1 - hA) / 2 : 0, lw: 200});
+    let y = stack ? (h1 - hB) / 2 : 0;
+    colB.forEach(it => { pos.push({it, x: xB + (wB - it.s.w * SC) / 2, y, lw: 130}); y += hOf(it) + 12; });
+    // rad 2: tillbehören, nederkanten i linje så att etiketterna hamnar på rad
+    const row = stack ? [] : acc;
+    if(row.length){
+      const slot = Math.min(W / row.length, 104);
+      const x2 = (W - slot * row.length) / 2;
+      const accH = Math.max(...row.map(i => i.s.h)) * SC;
+      row.forEach((it, n) => pos.push({it, lw: Math.floor(slot - 4), x: x2 + slot * n + (slot - it.s.w * SC) / 2, y: h1 + 16 + accH - it.s.h * SC}));
+    }
     const off = 0;
-    const H = Math.max(...pos.map(p => p.y + p.it.s.h * SC + lblH(p.it)));
+    const H = Math.max(...pos.map(p => p.y + hOf(p.it)));
     const intro = layKeys === null, prev = layKeys || new Set();
     const keys = new Set();
     el.style.height = H + "px";
@@ -814,7 +831,7 @@
       const d = intro ? n * 90 : 0;
       return `<div class="it${fresh ? " in" : ""}" role="listitem" data-slot="${it.slot}" style="left:${(off + p.x).toFixed(1)}px;top:${p.y.toFixed(1)}px;width:${w.toFixed(1)}px;--d:${d}ms;--lw:${p.lw}px">` +
         `<svg viewBox="${-s.pad} ${-s.pad} ${s.w + 2 * s.pad} ${s.h + 2 * s.pad}" style="width:${(w + 2 * s.pad * SC).toFixed(1)}px;height:${(h + 2 * s.pad * SC).toFixed(1)}px;margin:${(-s.pad * SC).toFixed(1)}px" aria-hidden="true">${s.svg}</svg>` +
-        `<div class="lab"><b>${esc(it.label)}</b>${it.sub ? `<span>${esc(it.sub)}</span>` : ""}</div></div>`;
+        (it.named || it.sub ? `<div class="lab">${it.named ? `<b>${esc(it.label)}</b>` : `<b class="sr">${esc(it.label)}</b>`}${it.sub ? `<span>${esc(it.sub)}</span>` : ""}</div>` : `<div class="sr">${esc(it.label)}</div>`) + `</div>`;
     }).join("");
     // etiketter som sticker ut i kanten flyttas in
     const box = el.getBoundingClientRect();
@@ -826,7 +843,7 @@
     // höjden efter de faktiska etiketterna, som kan bryta på flera rader
     let bottom = 0;
     el.querySelectorAll(".lab").forEach(l => { bottom = Math.max(bottom, l.offsetParent.offsetTop + l.offsetTop + l.offsetHeight); });
-    if(bottom) el.style.height = Math.ceil(bottom + 4) + "px";
+    el.style.height = Math.ceil(Math.max(bottom, H) + 4) + "px";
     layKeys = keys;
   }
   // Reaktioner när du svarar efter passet

@@ -6,7 +6,7 @@ Klädförslag för löpning utifrån vädret där du är. Appen lär sig hur du 
 
 ## Så funkar den
 
-- Svaret står som en affisch: plaggen i stor kursiv stil, och under den ligger kläderna utlagda ovanifrån. Alla plagg ritas i samma skala, så att jacka, tights, mössa och strumpor har rätt storlek mot varandra. Lager under jackan syns som konturer, och mössa, buff och handskar är röda.
+- Svaret står som en affisch: plaggen i stor kursiv stil, och under den ligger kläderna utlagda ovanifrån. Alla plagg ritas i samma skala, så att jacka, tights, mössa och strumpor har rätt storlek mot varandra. Lager under jackan syns som konturer, och mössa, buff och handskar är röda. Det som redan står i affischen får inget namn under plagget, bara en undertext när den tillför något.
 - Plaggen läggs ut ett i taget vid start, och när förslaget ändras rör sig bara de plagg som är nya.
 - Under kläderna står en notis i den röst du väljer (Saklig, Peppig eller Torr).
 - En tidslinje visar temperatur, regn, mörker och den bästa tiden de närmaste tolv timmarna. Dra för att välja när du springer.

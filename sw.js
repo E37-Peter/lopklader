@@ -1,6 +1,6 @@
 // Enkel service worker: gör att appen kan installeras och öppnas snabbt.
 // Själva sidan hämtas alltid färsk när det finns nät, vädret cachas aldrig.
-const CACHE = "lopklader-v14";
+const CACHE = "lopklader-v15";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
