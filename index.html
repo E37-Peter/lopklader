@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Löpkläder">
+<script>try{var t=(JSON.parse(localStorage.getItem("lopklader.v1.prefs")||"{}")||{}).theme;if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -28,11 +29,15 @@
     --pad:22px; --ease:cubic-bezier(.22,.8,.24,1);
     color-scheme:light;
   }
+  /* mörkt läge: följer telefonen, eller det du valt under Om dig */
   @media (prefers-color-scheme: dark){
-    :root{ --paper:#121212; --surface:#1E1D1C; --ink:#F2EFEA; --cloth:#5A5551; --cloth-line:#A8A29C; --seam:#C9C3BC; --muted:#9A948F; --faint:#6A6561; --line:#2E2C2A;
+    :root:not([data-theme=light]){ --paper:#121212; --surface:#1E1D1C; --ink:#F2EFEA; --cloth:#5A5551; --cloth-line:#A8A29C; --seam:#C9C3BC; --muted:#9A948F; --faint:#6A6561; --line:#2E2C2A;
       --red-text:#FF5A3C; --hair:rgba(209,58,38,.6); --warn-bg:#33290F; --good:#7CC796; --good-bg:#17291E;
       --night:#000; --best:#4A3D12; color-scheme:dark; }
   }
+  :root[data-theme=dark]{ --paper:#121212; --surface:#1E1D1C; --ink:#F2EFEA; --cloth:#5A5551; --cloth-line:#A8A29C; --seam:#C9C3BC; --muted:#9A948F; --faint:#6A6561; --line:#2E2C2A;
+      --red-text:#FF5A3C; --hair:rgba(209,58,38,.6); --warn-bg:#33290F; --good:#7CC796; --good-bg:#17291E;
+      --night:#000; --best:#4A3D12; color-scheme:dark; }
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%;background:var(--paper)}
   body{margin:0;font-family:var(--body);color:var(--ink);font-size:17px;line-height:1.4;-webkit-font-smoothing:antialiased;background:var(--paper);-webkit-tap-highlight-color:transparent;font-feature-settings:"tnum" 1}
@@ -453,6 +458,13 @@
       </div>
       <p class="voice-ex" id="voiceEx"></p>
     </div>
+    <div class="pref">
+      <h3>Utseende</h3>
+      <p>Följ telefonen, eller välj ljust eller mörkt.</p>
+      <div class="seg" data-pref="theme" role="group" aria-label="Utseende">
+        <button data-v="auto">Som telefonen</button><button data-v="light">Ljust</button><button data-v="dark">Mörkt</button>
+      </div>
+    </div>
     <button class="btn" data-close style="margin-top:24px">Klar</button>
   </div>
 </dialog>
@@ -498,7 +510,7 @@
   let profile = {offset:0, history:[], log:[]};
   const PARTS = ["head","top","hands","legs","feet"];
   const PART_LABEL = {head:"huvudet", top:"överkroppen", hands:"händerna", legs:"benen", feet:"fötterna"};
-  let prefs = {base:0, hands:"normal", legs:"normal", voice:"saklig"};
+  let prefs = {base:0, hands:"normal", legs:"normal", voice:"saklig", theme:"auto"};
 
   function load(){
     try{ const s = localStorage.getItem(KEY); if(s){ const p = JSON.parse(s); if(p && typeof p.offset==="number") profile = {offset:p.offset, history:Array.isArray(p.history)?p.history:[], log:Array.isArray(p.log)?p.log:[]}; } }catch(e){}
@@ -507,7 +519,7 @@
   function loadPrefs(){
     try{ const p = JSON.parse(localStorage.getItem(KEY + ".prefs") || "null");
       if(p){ if([-2,0,2].includes(p.base)) prefs.base = p.base; if(["normal","cold"].includes(p.hands)) prefs.hands = p.hands;
-        if(["shorts","normal","tights"].includes(p.legs)) prefs.legs = p.legs; if(["saklig","peppig","torr"].includes(p.voice)) prefs.voice = p.voice; } }catch(e){}
+        if(["shorts","normal","tights"].includes(p.legs)) prefs.legs = p.legs; if(["saklig","peppig","torr"].includes(p.voice)) prefs.voice = p.voice; if(["auto","light","dark"].includes(p.theme)) prefs.theme = p.theme; } }catch(e){}
   }
   function savePrefs(){ try{ localStorage.setItem(KEY + ".prefs", JSON.stringify(prefs)); }catch(e){} }
   const getJSON = k => { try{ return JSON.parse(localStorage.getItem(k) || "null"); }catch(e){ return null; } };
@@ -935,7 +947,7 @@
     if(!el.querySelector(".it")) return;
     const h = hours[selected], at = !h || selected === 0 ? Date.now() : h.ts;
     const w = +$("wind").value, p = state.precip;
-    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const dark = isDark();
     // skuggor: skarpa i sol, mjuka när det är halvklart, inga när det är mulet eller mörkt
     let sx = 0, sy = 0, sb = 0, op = 0;
     if(state.sky === "sun"){
@@ -1160,8 +1172,16 @@
     const b = e.target.closest("button"); if(!b) return;
     const k = g.dataset.pref;
     prefs[k] = k === "base" ? +b.dataset.v : b.dataset.v;
-    savePrefs(); renderPrefs(); render(); renderNote();
+    savePrefs(); renderPrefs(); if(k === "theme") applyTheme(); render(); renderNote();
   }));
+  const isDark = () => prefs.theme === "dark" || (prefs.theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  function applyTheme(){
+    const r = document.documentElement;
+    if(prefs.theme === "auto") delete r.dataset.theme; else r.dataset.theme = prefs.theme;
+    document.querySelectorAll('meta[name="theme-color"]').forEach((m, i) =>
+      m.setAttribute("content", prefs.theme === "auto" ? (i ? "#121212" : "#F3F3F1") : isDark() ? "#121212" : "#F3F3F1"));
+  }
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if(prefs.theme === "auto"){ fxSig = ""; render(); } });
 
   // ---------- Blad ----------
   function openDlg(id){
@@ -1629,6 +1649,7 @@
   if(saved && typeof saved.lat === "number") place = saved;
   load();
   loadPrefs();
+  applyTheme();
   renderPrefs();
   renderTabs();
   requestAnimationFrame(() => $("pace").classList.add("ready"));
