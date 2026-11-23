@@ -131,6 +131,7 @@
   .lay .lab span{display:block;font-size:12.5px;text-wrap:balance;color:var(--muted);margin-top:1px}
   .lay .it svg{filter:drop-shadow(var(--sx, 0) var(--sy, 0) var(--sb, 0) var(--sc, transparent));transition:filter .6s var(--ease)}
   .lay .fx{position:absolute;inset:0;pointer-events:none}
+  .sky{position:fixed;inset:0;z-index:4;pointer-events:none;overflow:hidden}
   .hidden-page .fx i{animation-play-state:paused}
   .fx .drop{position:absolute;width:1.6px;height:15px;border-radius:1px;background:var(--rain);rotate:var(--a);opacity:0;animation:fall var(--t, .75s) cubic-bezier(.5,0,1,1) var(--d) var(--n, 1) both}
   @keyframes fall{0%{opacity:0;transform:translateY(-34px)}15%{opacity:.9}100%{opacity:0;transform:translateY(80px)}}
@@ -957,30 +958,36 @@
     const animate = sig !== fxSig && !reduceMotion();
     fxSig = sig;
     if(fx) fx.remove();
-    if(p === "none" && !gust) return;
+    if(p === "none" && !gust){ const k = $("before").querySelector(".sky"); if(k) k.remove(); return; }
     fx = document.createElement("div");
     fx.className = "fx"; fx.setAttribute("aria-hidden", "true");
     let a = 7; const rnd = () => (a = (a * 16807) % 2147483647) / 2147483647;
     const W = el.clientWidth, H = el.clientHeight, slant = clamp(w * 1.8, 0, 26);
-    let s = "";
+    const VW = innerWidth, VH = innerHeight;
+    const spread = (i, n) => ((i + .15 + .7 * rnd()) / n);
+    const order = n => { const a = [...Array(n).keys()]; for(let i = n - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    let s = "", sky = "";
+    const old = $("before").querySelector(".sky"); if(old) old.remove();
     const onItems = (cls, big, small, d0) => el.querySelectorAll(".it").forEach(it => {
       const k = it.dataset.slot === "top" || it.dataset.slot === "legs" ? big : small;
+      const ys = order(k);
       for(let i = 0; i < k; i++)
-        s += `<b class="${cls}" style="left:${(it.offsetLeft + it.offsetWidth * (.25 + .5 * rnd())).toFixed(0)}px;top:${(it.offsetTop + it.offsetHeight * (.2 + .6 * rnd())).toFixed(0)}px;--d:${animate ? (d0 + rnd() * 900).toFixed(0) : 0}ms"></b>`;
+        s += `<b class="${cls}" style="left:${(it.offsetLeft + it.offsetWidth * (.12 + .76 * spread(i, k))).toFixed(0)}px;top:${(it.offsetTop + it.offsetHeight * (.12 + .76 * spread(ys[i], k))).toFixed(0)}px;--d:${animate ? (d0 + rnd() * 900).toFixed(0) : 0}ms"></b>`;
     });
     if(p === "rain" || p === "drizzle"){
       // först en skur, sedan ett lätt regn som håller i så länge det regnar
-      if(animate) for(let i = 0, n = p === "rain" ? 28 : 12; i < n; i++)
-        s += `<i class="drop" style="left:${(rnd() * W).toFixed(0)}px;top:${(rnd() * H * .75).toFixed(0)}px;--d:${(rnd() * 800).toFixed(0)}ms;--a:${slant}deg;--n:3"></i>`;
-      if(!reduceMotion()) for(let i = 0, n = p === "rain" ? 12 : 6; i < n; i++)
-        s += `<i class="drop" style="left:${(rnd() * W).toFixed(0)}px;top:${(rnd() * H * .8).toFixed(0)}px;--d:${(rnd() * 2400).toFixed(0)}ms;--t:${(800 + rnd() * 500).toFixed(0)}ms;--a:${slant}deg;--n:infinite"></i>`;
+      // fallande regn över hela skärmen, jämnt utspritt
+      if(animate){ const n = p === "rain" ? 34 : 16, ys = order(n); for(let i = 0; i < n; i++)
+        sky += `<i class="drop" style="left:${(spread(i, n) * VW).toFixed(0)}px;top:${(spread(ys[i], n) * VH).toFixed(0)}px;--d:${(rnd() * 800).toFixed(0)}ms;--a:${slant}deg;--n:3"></i>`; }
+      if(!reduceMotion()){ const n = p === "rain" ? 16 : 8, ys = order(n); for(let i = 0; i < n; i++)
+        sky += `<i class="drop" style="left:${(spread(i, n) * VW).toFixed(0)}px;top:${(spread(ys[i], n) * VH).toFixed(0)}px;--d:${(rnd() * 2400).toFixed(0)}ms;--t:${(800 + rnd() * 500).toFixed(0)}ms;--a:${slant}deg;--n:infinite"></i>`; }
       onItems("bead", p === "rain" ? 4 : 2, p === "rain" ? 1 : 0, 450);
     }
     if(p === "snow"){
-      if(animate) for(let i = 0; i < 22; i++)
-        s += `<i class="flake" style="left:${(rnd() * W).toFixed(0)}px;top:${(rnd() * H * .7).toFixed(0)}px;--d:${(rnd() * 1400).toFixed(0)}ms;--x:${(w * 3 + rnd() * 14 - 7).toFixed(0)}px"></i>`;
-      if(!reduceMotion()) for(let i = 0; i < 9; i++)
-        s += `<i class="flake" style="left:${(rnd() * W).toFixed(0)}px;top:${(rnd() * H * .8).toFixed(0)}px;--d:${(rnd() * 4000).toFixed(0)}ms;--t:${(3000 + rnd() * 1500).toFixed(0)}ms;--n:infinite;--x:${(w * 3 + rnd() * 14 - 7).toFixed(0)}px"></i>`;
+      if(animate){ const ys = order(26); for(let i = 0; i < 26; i++)
+        sky += `<i class="flake" style="left:${(spread(i, 26) * VW).toFixed(0)}px;top:${(spread(ys[i], 26) * VH).toFixed(0)}px;--d:${(rnd() * 1400).toFixed(0)}ms;--x:${(w * 3 + rnd() * 14 - 7).toFixed(0)}px"></i>`; }
+      if(!reduceMotion()){ const ys = order(12); for(let i = 0; i < 12; i++)
+        sky += `<i class="flake" style="left:${(spread(i, 12) * VW).toFixed(0)}px;top:${(spread(ys[i], 12) * VH).toFixed(0)}px;--d:${(rnd() * 4000).toFixed(0)}ms;--t:${(3000 + rnd() * 1500).toFixed(0)}ms;--n:infinite;--x:${(w * 3 + rnd() * 14 - 7).toFixed(0)}px"></i>`; }
       onItems("snowdot", 6, 2, 900);
     }
     if(gust && animate){
@@ -990,6 +997,7 @@
     }
     fx.innerHTML = s;
     el.appendChild(fx);
+    if(sky){ const k = document.createElement("div"); k.className = "sky fx"; k.setAttribute("aria-hidden", "true"); k.innerHTML = sky; $("before").appendChild(k); }
   }
 
   // Reaktioner när du svarar efter passet
