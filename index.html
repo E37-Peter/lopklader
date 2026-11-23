@@ -11,8 +11,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Löpkläder">
 <script>try{var t=(JSON.parse(localStorage.getItem("lopklader.v1.prefs")||"{}")||{}).theme;if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>try{if(sessionStorage.getItem("lopklader.intro")||matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("no-intro")}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon-192.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,9 +53,6 @@
   /* Topp */
   .top{display:flex;align-items:center;gap:9px}
   .logo{width:30px;height:30px;flex:none;display:block}
-  .logo .lane{stroke-dasharray:1;stroke-dashoffset:0}
-  .intro .logo .lane{animation:laneDraw .9s var(--ease) both}
-  .intro .logo .lane2{animation-delay:.15s}
   @keyframes laneDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
   .wm{font-family:var(--cond);font-style:italic;font-weight:800;font-size:24px;line-height:1;text-transform:uppercase}
   .top-right{margin-left:auto;margin-right:-9px;display:flex;gap:0}
@@ -126,6 +125,16 @@
     #tabs{max-width:560px}
     #after{max-width:560px}
   }
+  /* intro */
+  #intro{position:fixed;inset:0;z-index:60;background:var(--paper);display:grid;place-items:center;transition:background-color .45s var(--ease)}
+  .no-intro #intro{display:none}
+  .intro-run #logo{opacity:0}
+  .intro-in{display:flex;flex-direction:column;align-items:center;gap:18px}
+  #introMark{width:112px;height:112px;transform-origin:center;transition:transform .5s var(--ease)}
+  .intro-wm{font-family:var(--cond);font-style:italic;font-weight:800;font-size:34px;line-height:1;text-transform:uppercase;opacity:0;translate:0 8px;transition:opacity .35s var(--ease),translate .35s var(--ease)}
+  .intro-wm.on{opacity:1;translate:0 0}
+  #intro.out{background-color:transparent;pointer-events:none}
+  #intro.out .intro-wm{opacity:0;transition-duration:.2s}
   .welcome{font-size:16px;line-height:1.45;color:var(--muted);margin:16px 0 0;max-width:36ch}
   .lay{position:relative;margin-top:24px;min-height:200px}
   .lay .it{position:absolute}
@@ -301,14 +310,11 @@
 </style>
 </head>
 <body>
+<div id="intro" aria-hidden="true"><div class="intro-in"><svg id="introMark" viewBox="0 0 64 64"><clipPath id="mki"><rect width="64" height="64" rx="15"/></clipPath><rect width="64" height="64" rx="15" fill="#D13A26"/><g clip-path="url(#mki)"><path d="M30.9 62 Q28.6 9 15.5 -2 H48.5 Q35.4 9 33.1 62 Z" fill="#8A2214"/><g class="zt-open"><rect x="30.66" y="56.19" width="2.2" height="1.9" rx=".5" transform="rotate(-93.1 31.76 57.14)" fill="#fff"/><rect x="30.17" y="48.56" width="2.2" height="1.9" rx=".5" transform="rotate(-94.3 31.27 49.51)" fill="#fff"/><rect x="29.54" y="41.42" width="2.2" height="1.9" rx=".5" transform="rotate(-95.7 30.64 42.37)" fill="#fff"/><rect x="28.79" y="34.78" width="2.2" height="1.9" rx=".5" transform="rotate(-97.3 29.89 35.73)" fill="#fff"/><rect x="27.91" y="28.63" width="2.2" height="1.9" rx=".5" transform="rotate(-99.1 29.01 29.58)" fill="#fff"/><rect x="26.89" y="22.97" width="2.2" height="1.9" rx=".5" transform="rotate(-101.3 27.99 23.92)" fill="#fff"/><rect x="25.75" y="17.80" width="2.2" height="1.9" rx=".5" transform="rotate(-103.8 26.85 18.75)" fill="#fff"/><rect x="24.47" y="13.12" width="2.2" height="1.9" rx=".5" transform="rotate(-106.8 25.57 14.07)" fill="#fff"/><rect x="23.06" y="8.92" width="2.2" height="1.9" rx=".5" transform="rotate(-110.5 24.16 9.87)" fill="#fff"/><rect x="21.51" y="5.21" width="2.2" height="1.9" rx=".5" transform="rotate(-115.1 22.61 6.16)" fill="#fff"/><rect x="19.82" y="1.98" width="2.2" height="1.9" rx=".5" transform="rotate(-120.6 20.92 2.93)" fill="#fff"/><rect x="17.97" y="-0.76" width="2.2" height="1.9" rx=".5" transform="rotate(-127.6 19.07 0.19)" fill="#fff"/><rect x="15.96" y="-3.03" width="2.2" height="1.9" rx=".5" transform="rotate(-136.1 17.06 -2.08)" fill="#fff"/><rect x="31.14" y="56.19" width="2.2" height="1.9" rx=".5" transform="rotate(-86.9 32.24 57.14)" fill="#fff"/><rect x="31.63" y="48.56" width="2.2" height="1.9" rx=".5" transform="rotate(-85.7 32.73 49.51)" fill="#fff"/><rect x="32.26" y="41.42" width="2.2" height="1.9" rx=".5" transform="rotate(-84.3 33.36 42.37)" fill="#fff"/><rect x="33.01" y="34.78" width="2.2" height="1.9" rx=".5" transform="rotate(-82.7 34.11 35.73)" fill="#fff"/><rect x="33.89" y="28.63" width="2.2" height="1.9" rx=".5" transform="rotate(-80.9 34.99 29.58)" fill="#fff"/><rect x="34.91" y="22.97" width="2.2" height="1.9" rx=".5" transform="rotate(-78.7 36.01 23.92)" fill="#fff"/><rect x="36.05" y="17.80" width="2.2" height="1.9" rx=".5" transform="rotate(-76.2 37.15 18.75)" fill="#fff"/><rect x="37.33" y="13.12" width="2.2" height="1.9" rx=".5" transform="rotate(-73.2 38.43 14.07)" fill="#fff"/><rect x="38.74" y="8.92" width="2.2" height="1.9" rx=".5" transform="rotate(-69.5 39.84 9.87)" fill="#fff"/><rect x="40.29" y="5.21" width="2.2" height="1.9" rx=".5" transform="rotate(-64.9 41.39 6.16)" fill="#fff"/><rect x="41.98" y="1.98" width="2.2" height="1.9" rx=".5" transform="rotate(-59.4 43.08 2.93)" fill="#fff"/><rect x="43.83" y="-0.76" width="2.2" height="1.9" rx=".5" transform="rotate(-52.4 44.93 0.19)" fill="#fff"/><rect x="45.84" y="-3.03" width="2.2" height="1.9" rx=".5" transform="rotate(-43.9 46.94 -2.08)" fill="#fff"/></g><path d="M16.1 -2 Q27.700000000000003 9 30.5 61" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/><path d="M47.9 -2 Q36.3 9 33.5 61" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/><g class="zt-closed"><rect x="29.6" y="63.5" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="32" y="65.7" width="2.4" height="1.9" rx=".5" fill="#fff"/></g><g class="zp" transform="translate(32 59) scale(1.35) translate(-32 -59)"><path d="M28 59 H36 L35 76 Q32 79.5 29 76 Z" fill="#fff" stroke="#D13A26" stroke-width="1.04" stroke-linejoin="round"/><rect x="30.2" y="67.5" width="3.6" height="5.6" rx="1.8" fill="#D13A26"/></g></g></svg><span class="intro-wm">Löpkläder</span></div></div>
 <main class="app intro">
 
   <header class="top">
-    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
-      <rect width="64" height="64" rx="14" fill="#D13A26"/>
-      <path class="lane" pathLength="1" d="M16 10v24a20 20 0 0 0 20 20h18" stroke="#fff" stroke-width="5" fill="none"/>
-      <path class="lane lane2" pathLength="1" d="M27 10v24a9 9 0 0 0 9 9h18" stroke="#fff" stroke-width="5" fill="none"/>
-    </svg>
+    <svg class="logo" id="logo" viewBox="0 0 64 64" aria-hidden="true"><clipPath id="mkh"><rect width="64" height="64" rx="15"/></clipPath><rect width="64" height="64" rx="15" fill="#D13A26"/><g clip-path="url(#mkh)"><path d="M30.9 28 Q28.6 9 15.5 -2 H48.5 Q35.4 9 33.1 28 Z" fill="#8A2214"/><g class="zt-open"><rect x="30.65" y="25.15" width="2.2" height="1.9" rx=".5" transform="rotate(-98.5 31.75 26.10)" fill="#fff"/><rect x="30.15" y="22.28" width="2.2" height="1.9" rx=".5" transform="rotate(-101.4 31.25 23.23)" fill="#fff"/><rect x="29.51" y="19.50" width="2.2" height="1.9" rx=".5" transform="rotate(-104.4 30.61 20.45)" fill="#fff"/><rect x="28.75" y="16.81" width="2.2" height="1.9" rx=".5" transform="rotate(-107.5 29.85 17.76)" fill="#fff"/><rect x="27.85" y="14.22" width="2.2" height="1.9" rx=".5" transform="rotate(-110.7 28.95 15.17)" fill="#fff"/><rect x="26.82" y="11.72" width="2.2" height="1.9" rx=".5" transform="rotate(-114.1 27.92 12.67)" fill="#fff"/><rect x="25.66" y="9.31" width="2.2" height="1.9" rx=".5" transform="rotate(-117.5 26.76 10.26)" fill="#fff"/><rect x="24.36" y="7.00" width="2.2" height="1.9" rx=".5" transform="rotate(-121.0 25.46 7.95)" fill="#fff"/><rect x="22.94" y="4.79" width="2.2" height="1.9" rx=".5" transform="rotate(-124.6 24.04 5.74)" fill="#fff"/><rect x="21.38" y="2.67" width="2.2" height="1.9" rx=".5" transform="rotate(-128.1 22.48 3.62)" fill="#fff"/><rect x="19.69" y="0.65" width="2.2" height="1.9" rx=".5" transform="rotate(-131.7 20.79 1.60)" fill="#fff"/><rect x="17.87" y="-1.27" width="2.2" height="1.9" rx=".5" transform="rotate(-135.2 18.97 -0.32)" fill="#fff"/><rect x="15.92" y="-3.09" width="2.2" height="1.9" rx=".5" transform="rotate(-138.6 17.02 -2.14)" fill="#fff"/><rect x="31.15" y="25.15" width="2.2" height="1.9" rx=".5" transform="rotate(-81.5 32.25 26.10)" fill="#fff"/><rect x="31.65" y="22.28" width="2.2" height="1.9" rx=".5" transform="rotate(-78.6 32.75 23.23)" fill="#fff"/><rect x="32.29" y="19.50" width="2.2" height="1.9" rx=".5" transform="rotate(-75.6 33.39 20.45)" fill="#fff"/><rect x="33.05" y="16.81" width="2.2" height="1.9" rx=".5" transform="rotate(-72.5 34.15 17.76)" fill="#fff"/><rect x="33.95" y="14.22" width="2.2" height="1.9" rx=".5" transform="rotate(-69.3 35.05 15.17)" fill="#fff"/><rect x="34.98" y="11.72" width="2.2" height="1.9" rx=".5" transform="rotate(-65.9 36.08 12.67)" fill="#fff"/><rect x="36.14" y="9.31" width="2.2" height="1.9" rx=".5" transform="rotate(-62.5 37.24 10.26)" fill="#fff"/><rect x="37.44" y="7.00" width="2.2" height="1.9" rx=".5" transform="rotate(-59.0 38.54 7.95)" fill="#fff"/><rect x="38.86" y="4.79" width="2.2" height="1.9" rx=".5" transform="rotate(-55.4 39.96 5.74)" fill="#fff"/><rect x="40.42" y="2.67" width="2.2" height="1.9" rx=".5" transform="rotate(-51.9 41.52 3.62)" fill="#fff"/><rect x="42.11" y="0.65" width="2.2" height="1.9" rx=".5" transform="rotate(-48.3 43.21 1.60)" fill="#fff"/><rect x="43.93" y="-1.27" width="2.2" height="1.9" rx=".5" transform="rotate(-44.8 45.03 -0.32)" fill="#fff"/><rect x="45.88" y="-3.09" width="2.2" height="1.9" rx=".5" transform="rotate(-41.4 46.98 -2.14)" fill="#fff"/></g><path d="M16.1 -2 Q27.700000000000003 9 30.5 27" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/><path d="M47.9 -2 Q36.3 9 33.5 27" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/><g class="zt-closed"><rect x="29.6" y="29.5" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="32" y="31.6" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="29.6" y="33.8" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="32" y="35.9" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="29.6" y="38.1" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="32" y="40.2" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="29.6" y="42.4" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="32" y="44.5" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="29.6" y="46.7" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="32" y="48.8" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="29.6" y="51.0" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="32" y="53.1" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="29.6" y="55.3" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="32" y="57.4" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="29.6" y="59.6" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="32" y="61.7" width="2.4" height="1.9" rx=".5" fill="#fff"/><rect x="29.6" y="63.9" width="2.4" height="1.9" rx=".5" fill="#fff"/></g><g class="zp" transform="translate(32 25) scale(1.35) translate(-32 -25)"><path d="M28 25 H36 L35 42 Q32 45.5 29 42 Z" fill="#fff" stroke="#D13A26" stroke-width="1.04" stroke-linejoin="round"/><rect x="30.2" y="33.5" width="3.6" height="5.6" rx="1.8" fill="#D13A26"/></g></g></svg>
     <span class="wm">Löpkläder</span>
     <div class="top-right">
       <button class="icon-btn" id="meBtn" aria-label="Om dig"><span data-ic="user"></span></button>
@@ -1644,6 +1650,62 @@
     if(document.visibilityState === "visible" && place && Date.now() - fetchedAt > 20*60*1000) getWeather(place.lat, place.lon, place.name);
   });
 
+  // ---------- Symbolen och introt ----------
+  // Dragkedjan: vy är hur långt ned den är öppen (28 är logotypen, 62 helt öppen)
+  function markSVG(vy, cid){
+    const RED = "#D13A26", IN = "#8A2214", FG = "#fff", k = 1.35;
+    const cx = 28.6 - (vy - 28) * .12;
+    const L = [[30.9, vy], [cx, 9], [15.5, -2]], R = [[33.1, vy], [64 - cx, 9], [48.5, -2]];
+    const qb = (P, t) => [0, 1].map(j => (1 - t) ** 2 * P[0][j] + 2 * (1 - t) * t * P[1][j] + t * t * P[2][j]);
+    const qd = (P, t) => [0, 1].map(j => 2 * (1 - t) * (P[1][j] - P[0][j]) + 2 * t * (P[2][j] - P[1][j]));
+    let s = `<clipPath id="${cid}"><rect width="64" height="64" rx="15"/></clipPath><rect width="64" height="64" rx="15" fill="${RED}"/><g clip-path="url(#${cid})">`;
+    s += `<path d="M${L[0]} Q${L[1]} ${L[2]} H${R[2][0]} Q${R[1]} ${R[0]} Z" fill="${IN}"/>`;
+    [[L, 1], [R, -1]].forEach(([P, sg]) => {
+      for(let i = 0; i < 13; i++){
+        const t = (i + .6) / 13, [x, y] = qb(P, t), [dx, dy] = qd(P, t), l = Math.hypot(dx, dy), ux = dx / l, uy = dy / l;
+        const ex = x - uy * sg * 1.1, ey = y + ux * sg * 1.1, a = Math.atan2(uy, ux) * 180 / Math.PI;
+        s += `<rect x="${(ex - 1.1).toFixed(2)}" y="${(ey - .95).toFixed(2)}" width="2.2" height="1.9" rx=".5" transform="rotate(${a.toFixed(1)} ${ex.toFixed(2)} ${ey.toFixed(2)})" fill="${FG}"/>`;
+      }
+    });
+    s += `<path d="M16.1 -2 Q${cx - .9} 9 ${L[0][0] - .4} ${vy - 1}" fill="none" stroke="${FG}" stroke-width="1.4" stroke-linecap="round"/>`;
+    s += `<path d="M47.9 -2 Q${64 - cx + .9} 9 ${R[0][0] + .4} ${vy - 1}" fill="none" stroke="${FG}" stroke-width="1.4" stroke-linecap="round"/>`;
+    for(let y = vy + 1.5, i = 0; y < 66; y += 2.15, i++) s += `<rect x="${i % 2 ? 32 : 29.6}" y="${y.toFixed(1)}" width="2.4" height="1.9" rx=".5" fill="${FG}"/>`;
+    s += `<g transform="translate(32 ${vy - 3}) scale(${k}) translate(-32 ${-(vy - 3)})"><path d="M28 ${vy - 3} H36 L35 ${vy + 14} Q32 ${vy + 17.5} 29 ${vy + 14} Z" fill="${FG}" stroke="${RED}" stroke-width="${(1.4 / k).toFixed(2)}" stroke-linejoin="round"/><rect x="30.2" y="${vy + 5.5}" width="3.6" height="5.6" rx="1.8" fill="${RED}"/></g>`;
+    return s + "</g>";
+  }
+  // Introt: dragkedjan dras upp, ordbilden kommer fram, och logotypen flyttar upp till sidhuvudet
+  function playIntro(){
+    const box = $("intro");
+    if(!box || document.documentElement.classList.contains("no-intro")){ if(box) box.remove(); return; }
+    try{ sessionStorage.setItem("lopklader.intro", "1"); }catch(e){}
+    const mk = $("introMark"), wm = box.querySelector(".intro-wm");
+    let done = false;
+    const finish = () => { if(done) return; done = true; box.remove(); document.documentElement.classList.remove("intro-run"); };
+    document.documentElement.classList.add("intro-run");
+    box.addEventListener("click", () => { box.classList.add("out"); setTimeout(finish, 250); });
+    const t0 = performance.now(), UP = 760;
+    // lätt överskjutning på slutet, som när man drar upp en dragkedja med ett ryck
+    const ease = t => { const c = 1.6; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+    const step = now => {
+      if(done) return;
+      const t = Math.min(1, (now - t0) / UP);
+      mk.innerHTML = markSVG(62 - 34 * ease(t), "mki");
+      if(t < 1) requestAnimationFrame(step);
+      else {
+        wm.classList.add("on");
+        setTimeout(() => {
+          // flytta symbolen till sidhuvudets logotyp
+          const a = mk.getBoundingClientRect(), b = $("logo").getBoundingClientRect();
+          const dx = b.left + b.width / 2 - (a.left + a.width / 2), dy = b.top + b.height / 2 - (a.top + a.height / 2);
+          mk.style.transform = `translate(${dx}px, ${dy}px) scale(${b.width / a.width})`;
+          box.classList.add("out");
+          setTimeout(finish, 520);
+        }, 520);
+      }
+    };
+    requestAnimationFrame(step);
+  }
+
   // ---------- Start ----------
   const saved = getJSON(KEY + ".place");
   if(saved && typeof saved.lat === "number") place = saved;
@@ -1660,6 +1722,7 @@
   if(place) getWeather(place.lat, place.lon, place.name);
   else { $("welcome").hidden = false; openDlg("placeDlg"); }
 
+  playIntro();
   if("serviceWorker" in navigator && location.protocol === "https:"){
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }

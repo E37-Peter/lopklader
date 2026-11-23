@@ -28,6 +28,10 @@ Klädförslag för löpning utifrån vädret där du är. Appen lär sig hur du 
 
 Lägg till på hemskärmen: öppna sidan i mobilen, välj Dela och sedan Lägg till på hemskärmen.
 
+## Symbol
+
+Symbolen är en dragkedja som är öppen upptill och visar ett lager under, ritad i kod (samma form i sidhuvudet, appikonen och introt). När appen öppnas dras dragkedjan upp, en gång per session.
+
 ## Ikoner
 
 Ikonerna kommer från [Lucide](https://lucide.dev) (ISC). Animationerna bygger på [lucide-animated](https://lucide-animated.com) (MIT) och är omsatta till CSS. Se [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
