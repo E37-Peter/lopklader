@@ -86,12 +86,20 @@
 
   /* Flikar längst ner */
   .tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:color-mix(in srgb, var(--paper) 92%, transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:0 var(--pad) env(safe-area-inset-bottom)}
-  .tabs div{max-width:476px;margin:0 auto;display:flex;justify-content:space-between}
-  .tabs button{border:0;background:none;padding:14px 2px 16px;font-size:15px;color:var(--muted);position:relative;transition:color .2s}
-  .tabs button[aria-pressed=true]{color:var(--ink);font-weight:600}
-  .tabs button::after{content:"";position:absolute;left:0;right:0;bottom:10px;height:3px;background:var(--red);transform:scaleX(0);transition:transform .3s var(--ease)}
-  .tabs button[aria-pressed=true]::after{transform:scaleX(1)}
-  .tabs button .badge{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-left:4px;vertical-align:2px}
+  #tabs{max-width:476px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:10px 0 12px}
+  .pace{position:relative;flex:1;display:flex;background:color-mix(in srgb, var(--ink) 7%, transparent);border-radius:12px;padding:3px}
+  .pace button{position:relative;z-index:1;flex:1 1 auto;border:0;background:none;padding:8px 7px;font-size:14px;font-weight:500;color:var(--muted);white-space:nowrap;transition:color .2s}
+  .pace button[aria-pressed=true]{color:var(--ink);font-weight:600}
+  .pthumb{position:absolute;top:3px;bottom:3px;left:0;width:0;border-radius:9px;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+  .pace.ready .pthumb{transition:translate .32s var(--ease),width .32s var(--ease),opacity .2s}
+  .pace.off .pthumb{opacity:0}
+  .pace.off button{color:var(--muted);font-weight:500}
+  .afterbtn{position:relative;flex:none;display:flex;align-items:center;gap:6px;border:0;border-radius:12px;padding:9px 11px;background:none;font-size:14px;font-weight:600;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line);transition:background .2s,color .2s}
+  .afterbtn .ic{width:17px;height:17px}
+  .afterbtn[aria-pressed=true]{background:var(--ink);color:var(--paper);box-shadow:none}
+  .afterbtn .due{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid var(--paper);display:none}
+  .afterbtn.is-due .due{display:block}
+  @media (max-width:370px){ .afterbtn .t{display:none} .afterbtn{padding:9px 11px} }
 
   .toast{margin:16px 0 0;text-align:center;font-size:15px;font-weight:500;min-height:1.4em}
   .toast.show{animation:rise .4s var(--ease)}
@@ -301,11 +309,13 @@
   <footer>Väderdata från <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a></footer>
 </main>
 
-<nav class="tabs" aria-label="Typ av pass"><div id="tabs">
-  <button data-tab="easy" aria-pressed="true">Lugnt</button>
-  <button data-tab="long" aria-pressed="false">Långpass</button>
-  <button data-tab="hard" aria-pressed="false">Intervaller</button>
-  <button data-tab="after" aria-pressed="false">Efter passet</button>
+<nav class="tabs" aria-label="Pass"><div id="tabs">
+  <div class="pace" id="pace" role="group" aria-label="Typ av pass"><span class="pthumb" id="pthumb" aria-hidden="true"></span>
+    <button data-tab="easy" aria-pressed="true">Lugnt</button>
+    <button data-tab="long" aria-pressed="false">Långpass</button>
+    <button data-tab="hard" aria-pressed="false">Intervaller</button>
+  </div>
+  <button class="afterbtn" id="afterBtn" data-tab="after" aria-pressed="false" aria-label="Efter passet"><span data-ic="home"></span><span class="t">Efter passet</span><span class="due" aria-hidden="true"></span></button>
 </div></nav>
 
 <!-- Plats -->
@@ -497,6 +507,7 @@
     clock: '<circle cx="12" cy="12" r="10"/><path class="hand" d="M12 6v6l4 2"/>',
     locate: '<path d="M2 12h3M19 12h3M12 2v3M12 19v3"/><circle cx="12" cy="12" r="7"/><circle class="pop" cx="12" cy="12" r="3"/>',
     chevron: '<path d="m6 9 6 6 6-6"/>',
+    home: '<path d="M15 21v-8a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   };
   const icon = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${G[k] || ""}</svg>`;
   function play(el){
@@ -936,12 +947,19 @@
   // Flikar: typ av pass, och läget efter passet
   function renderTabs(){
     $("tabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(afterMode ? b.dataset.tab === "after" : b.dataset.tab === state.pace)));
+    const on = $("pace").querySelector(`[data-tab="${state.pace}"]`);
+    $("pthumb").style.width = on.offsetWidth + "px";
+    $("pthumb").style.translate = on.offsetLeft + "px 0";
+    $("pace").classList.toggle("off", afterMode);
+    $("afterBtn").classList.toggle("is-due", !afterMode && planDue());
   }
+  const PACE_MSG = {easy:"Lugnt pass: förslaget som vanligt.", long:"Långpass: lite varmare, du hinner svalna på slutet.", hard:"Intervaller: tunnare, du blir varm fort."};
   $("tabs").addEventListener("click", e => {
     const b = e.target.closest("button"); if(!b) return;
     const t = b.dataset.tab;
     if(t === "after"){ if(!afterMode) setMode(true); }
     else {
+      if(t !== state.pace) toast(PACE_MSG[t]);
       state.pace = t;
       if(afterMode) setMode(false);
       else { render(); renderNote(); if(hours.length) renderTimeline(); }
@@ -1454,6 +1472,9 @@
   loadPrefs();
   renderPrefs();
   renderTabs();
+  requestAnimationFrame(() => $("pace").classList.add("ready"));
+  if(document.fonts) document.fonts.ready.then(renderTabs);
+  addEventListener("resize", renderTabs);
   if(planDue()) setMode(true);
   else render();
   if(place) getWeather(place.lat, place.lon, place.name);
